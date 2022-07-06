@@ -17,52 +17,61 @@ class ConnectMysql:
 
     def __init__(self, opt):
         self.opt = opt
-        # self.ip = self.opt.ip
-        # self.port = opt.port
-        # self.server_username = opt.server_username
-        # self.server_password = opt.server_password
-        # self.database_username = opt.database_username
-        # self.database_username_password = opt.database_username_password
-        # self.databaseName = opt.databaseName
-
-    def run_server_connect_mysql(self):
-
-        server = SSHTunnelForwarder(
+        self.server = SSHTunnelForwarder(
             ssh_address_or_host=(self.opt.ip, self.opt.port),
             ssh_username=self.opt.server_username,
             ssh_password=self.opt.server_password,
             remote_bind_address=('localhost', 3306)
         )
-
-        server.start()
-
-        db = pymysql.connect(
+        self.server.start()
+        self.connect = pymysql.connect(
             host='127.0.0.1',
-            port=server.local_bind_port,
+            port=self.server.local_bind_port,
             user=self.opt.database_username,
             passwd=self.opt.database_username_password,
             db=self.opt.databaseName,
             charset='utf8'
         )
+        self.cursor = self.connect.cursor()
 
-        cursor = db.cursor()
+    def __del__(self):
+        self.cursor.close()
+        self.connect.close()
+        self.server.close()
+        print('close success!')
 
+    def run_server_connect_mysql(self):
+
+        # server = SSHTunnelForwarder(
+        #     ssh_address_or_host=(self.opt.ip, self.opt.port),
+        #     ssh_username=self.opt.server_username,
+        #     ssh_password=self.opt.server_password,
+        #     remote_bind_address=('localhost', 3306)
+        # )
+        # self.server.start()
+        # db = pymysql.connect(
+        #     host='127.0.0.1',
+        #     port=server.local_bind_port,
+        #     user=self.opt.database_username,
+        #     passwd=self.opt.database_username_password,
+        #     db=self.opt.databaseName,
+        #     charset='utf8'
+        # )
+        #        cursor = self.connect.cursor()
         # 使用execute()方法执行SQL查询
-        cursor.execute("SELECT VERSION()")
-        # 使用 fetchone() 方法获取单条数据.4sHFKgg_456]6
+        self.cursor.execute("SELECT VERSION()")
+
         # todo 存 （羊） 写（刘）
 
-        data = cursor.fetchone()
+        data = self.cursor.fetchone()
         print("Database version : %s " % data)
+        self.run()
 
-        cursor.close()
-        # 关闭数据库连接
-        db.close()
-        server.close()
+    def read_csv_columns(self):
 
-    def read_csv_colnmus(self):
+        # todo 这里对接王梓炫组，下面代码仅供算法组测试
         # 读取csv文件的列索引，用于建立数据表时的字段
-        csv_name = 'E:/pycharm/pycharmProject/autogluon-master/autogluon-master/datasets/CICIDS2017/CIC-IDS2017/CICIDS_test.csv'
+        csv_name = 'data/CICIDS_test.csv'
         data = pd.read_csv(csv_name, encoding="utf-8")
         columns = data.columns.tolist()
         types = data.dtypes
@@ -96,46 +105,31 @@ class ConnectMysql:
         return ','.join(make_table)
 
     def read_csv_values(self):
-        # 读取csv文件数据
-        csv_name = 'E:/pycharm/pycharmProject/autogluon-master/autogluon-master/datasets/CICIDS2017/CIC-IDS2017/CICIDS_test.csv'
+
+        # todo 这里对接王梓炫组，下面代码仅供算法组测试
+        csv_name = 'data/CICIDS_test.csv'
         data = pd.read_csv(csv_name)
-        print(data.shape)
+        print('the shape of data we get.',data.shape)
         data.replace([np.inf, -np.inf], np.nan, inplace=True)
         data.dropna(inplace=True)
         print(data.shape)
         data = pd.DataFrame(data)
         data_3 = list(data.values)
-        # print(data)
-        return data, data_3
 
-    def write_csv(self):
-        for i in self.read_csv_values():  # 因为数据是迭代列表，所以用循环把数据提取出来
-            data_6 = tuple(i)
-            sql = """insert into weather_year_db values{}""".format(data_6)
-            self.cursor.execute(sql)
-            self.commit()
-        print("\n数据植入完成")
+        return data_3
 
     def write_mysql(self):
-        # 在数据表中写入数据，因为数据是列表类型，把他转化为元组更符合sql语句
-        table_name = 't_cicids'
-        columns = self.read_csv_colnmus()
-        data, data_3 = self.read_csv_values()
-        # print(data_3)
-        # s = ','.join(['%s' for _ in range(len(data.columns))])
-        # text = 'INSERT INTO {} ({}) VALUES ({})'.format(table_name, columns, s)
-        # print(text)
-        # self.cursor.executemany(text, data_3)
-        # self.commit()
-        for i in data_3:  # 因为数据是迭代列表，所以用循环把数据提取出来
+
+        # table_name = 't_cicids'
+        # columns = self.read_csv_colnmus()
+        data = self.read_csv_values()
+        for i in data:
             data_6 = tuple(i)
-            # print(len(data_6))
-            # print(len(data.columns))
-            sql = 'insert into {} values{}'.format(table_name, data_6)
+            sql = 'insert into {} values{}'.format(self.opt.tableName, data_6)
             print(sql)
             self.cursor.execute(sql)
             self.commit()
-        print("\n数据植入完成")
+        print("\nComplete write data operation!")
 
     def commit(self):
         # 定义一个确认事务运行
@@ -143,15 +137,22 @@ class ConnectMysql:
 
     def create(self):
         # 若已有数据表weather_year_db，则删除
-        table_name = 'zx_flow'
-        self.cursor.execute('DROP TABLE IF EXISTS {}'.format(table_name))
+        # table_name = 'zx_flow'
+        # self.cursor.execute('DROP TABLE IF EXISTS {}'.format(self.opt.tableName))
         # 创建数据表，用刚才提取的列索引作为字段
-        columns = self.read_csv_colnmus()
-        text = 'CREATE TABLE {}({})'.format(table_name, columns)
+        columns = self.read_csv_columns()
+        text = 'CREATE TABLE {}({})'.format(self.opt.tableName, columns)
         print(text)
-        self.cursor.execute('CREATE TABLE {}({})'.format(table_name, columns))
+        self.cursor.execute('CREATE TABLE {}({})'.format(self.opt.tableName, columns))
         self.commit()
 
+    def exists(self):
+        sql = "SHOW TABLES LIKE '{}' ".format(self.opt.tableName)
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return len(result) != 0
+
     def run(self):
-        self.create()
+        if ~self.exists():
+            self.create()
         self.write_mysql()

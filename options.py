@@ -27,6 +27,7 @@ class Options():
         self.parser.add_argument('--database_username_password', default='123456', help='the password that database '
                                                                                         'log in.')
         self.parser.add_argument('--databaseName', default='zxyflow', help='the name that database log in.')
+        self.parser.add_argument('--tableName', default='zx_flow', help='the name of table.')
         self.opt = None
 
     def parse(self) -> object:
