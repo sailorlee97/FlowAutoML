@@ -117,7 +117,7 @@ class ConnectMysql:
     def create(self):
         columns = self.read_csv_columns()
         text = 'CREATE TABLE {}({})'.format(self.opt.tableName, columns)
-        print(text)
+        #print(text)
         self.cursor.execute('CREATE TABLE {}({})'.format(self.opt.tableName, columns))
         self.commit()
 
@@ -128,6 +128,25 @@ class ConnectMysql:
         return len(result) != 0
 
     def start_write_csv(self):
+        '''
+        yang write
+        :return:none
+        '''
+
         if ~self.exists():
             self.create()
         self.write_mysql()
+
+    def read_data_from_mysql(self):
+        '''
+        get data from mysql
+        :return:
+        '''
+
+        sql = 'SELECT * FROM {}'.format(self.opt.tableName)
+        self.cursor.execute(sql)
+        #mydata = self.cursor.fetchall()  # 获取全部数据
+        count = 0
+        data = self.cursor.fetchall()
+        df = pd.DataFrame(list(data))
+        print(df)
