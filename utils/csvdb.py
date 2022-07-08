@@ -137,8 +137,9 @@ class ConnectMysql:
             self.create()
         self.write_mysql()
 
-    def read_data_from_mysql(self):
+    def read_data_from_mysql(self,time):
         '''
+        time: the number of data we get
         get data from mysql
         :return:
         '''
@@ -151,4 +152,5 @@ class ConnectMysql:
         data = self.cursor.fetchall()
         df = pd.DataFrame(list(data))
         df.columns = data_dict
-        print(df)
+
+        return df.head(time)
