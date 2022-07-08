@@ -145,8 +145,10 @@ class ConnectMysql:
 
         sql = 'SELECT * FROM {}'.format(self.opt.tableName)
         self.cursor.execute(sql)
-        #mydata = self.cursor.fetchall()  # 获取全部数据
-        count = 0
+        data_dict = []
+        for field in self.cursor.description:
+            data_dict.append(field[0])
         data = self.cursor.fetchall()
         df = pd.DataFrame(list(data))
+        df.columns = data_dict
         print(df)
