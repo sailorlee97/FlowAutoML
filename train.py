@@ -9,7 +9,6 @@
 """
 from autoTask import autotask
 from options import Options
-from utils.csvdb import ConnectMysql
 
 if __name__ == '__main__':
     opt = Options().parse()
