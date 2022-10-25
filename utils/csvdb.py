@@ -29,7 +29,7 @@ class ConnectMysql():
 
     def get_data(self):
 
-        sql = "select * from test_flowfeature where appname in ('AcFun','aiqiyijisuban','aobidao','aolaxing','Bing','douyin','duoduoshipin','duxiaoshi','elma','fengxingshipin')"
+        sql = "select * from test_flowfeature where appname in ('AcFun','Bing','duxiaoshi')"
 
         df = pd.read_sql(sql, con=self.conn)
         #print(df)
@@ -42,7 +42,7 @@ class ConnectMysql():
             ["Flow ID", "Src IP", "Src Port", "Dst IP", "Dst Port", "Label", "appversion", "appplatform", "date","index",
              "chargeperson"], axis=1, inplace=False)
 
-        #le = LabelEncoder()
+        le = LabelEncoder()
         #process.iloc[0:, -1] = le.fit_transform(process.iloc[0:, -1])
 
         #print(process)
@@ -51,8 +51,12 @@ class ConnectMysql():
         print('dl successfully')
 
         y = process['appname']
-        # x = process.drop('appname',axis=1)
-        X_train, X_test, y_train, y_test = train_test_split(process, y, test_size=0.33, random_state=0)
+        x = process.drop('appname',axis=1)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=0)
+
+        y_train = le.fit_transform(y_train)
+        #print(y_train)
+        y_test = le.fit_transform(y_test)
 
         return X_train, X_test, y_train, y_test
 
