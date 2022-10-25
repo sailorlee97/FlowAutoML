@@ -10,6 +10,7 @@
 import pymysql
 import pandas as pd
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 class ConnectMysql():
@@ -44,11 +45,16 @@ class ConnectMysql():
         #le = LabelEncoder()
         #process.iloc[0:, -1] = le.fit_transform(process.iloc[0:, -1])
 
-        print(process)
+        #print(process)
         if self.issavetocsv:
             process.to_csv('testing.csv')
         print('dl successfully')
 
+        y = process['appname']
+        # x = process.drop('appname',axis=1)
+        X_train, X_test, y_train, y_test = train_test_split(process, y, test_size=0.33, random_state=0)
+
+        return X_train, X_test, y_train, y_test
 
 if __name__ == '__main__':
     getdata = ConnectMysql()
