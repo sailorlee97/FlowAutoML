@@ -52,7 +52,7 @@ class ConnectMysql():
 
         y = process['appname']
         x = process.drop('appname',axis=1)
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
 
         y_train = le.fit_transform(y_train)
         #print(y_train)

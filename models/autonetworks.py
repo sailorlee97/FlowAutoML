@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn import preprocessing
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import keras
@@ -42,11 +43,10 @@ class autonetworks():
         model.add(keras.layers.Dense(self.layer_size,
                                      activation = 'selu'))
 
-    model.add(keras.layers.Dense(self.layer_size, activation='selu'))
+    # model.add(keras.layers.Dense(self.layer_size, activation='selu'))
     model.add(Dense(self.n_class, activation='softmax'))
     optimizer = keras.optimizers.RMSprop(self.learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer)
-
     return model
 
 # RandomizedSearchCV
@@ -68,6 +68,7 @@ def build_model(hidden_layers = 1,
     model.compile(loss = 'mse', optimizer = optimizer)
     return model
 
+# unit test
 if __name__ == '__main__':
 
     from utils.csvdb import ConnectMysql
@@ -89,8 +90,10 @@ if __name__ == '__main__':
 
     X = np.expand_dims(X_train.values.astype(float), axis=2)
     inp_size = X.shape[1]
+    x_test = np.expand_dims(X_test.values.astype(float), axis=2)
 
     cnnmodel = autonetworks(3,inp_size)
-    # model = cnnmodel.buildmodels()
     estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=40, batch_size=64, verbose=1)
     estimator.fit(X, y_train)
+    y_pred = estimator.predict(x_test)
+    print(classification_report(y_test,y_pred))

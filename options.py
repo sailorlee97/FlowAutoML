@@ -16,10 +16,11 @@ class Options():
     def __init__(self):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        self.parser.add_argument('--modelpath', default='AutogluonModels/ag-20220622_121736', help='path to model')
+        self.parser.add_argument('--modelpath', default='AutomlModels/', help='path to model')
         self.parser.add_argument('--isInitialization', default='yes',
                                  help='yes - model train;no - we will load model trained.')
         self.parser.add_argument('--label', default='appname', help='data class labels.')
+        self.parser.add_argument('--nclass', default=3, help='number class labels.')
         self.parser.add_argument('--host', default='rm-bp1mv8ua26rj84t32eo.mysql.rds.aliyuncs.com',
                                  help='server ip addr.')
         self.parser.add_argument('--port', default=3306, help='connect server port.')

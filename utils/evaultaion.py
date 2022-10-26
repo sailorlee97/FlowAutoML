@@ -7,7 +7,8 @@
 @FileName: evaultaion.py
 @Software: PyCharm
 """
-from sklearn.metrics import roc_curve, auc, average_precision_score, f1_score, recall_score, precision_score
+from sklearn.metrics import roc_curve, auc, average_precision_score, f1_score, recall_score, precision_score, \
+    classification_report
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
@@ -124,3 +125,6 @@ class Eva():
         plt.grid(True)
         plt.gca().set_ylim(0,1)
         plt.show()
+
+    def caluateclassification(self,y_test,y_pred):
+        print(classification_report(y_test,y_pred,digits=4))

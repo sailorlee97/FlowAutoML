@@ -13,4 +13,4 @@ from options import Options
 if __name__ == '__main__':
     opt = Options().parse()
     model = autotask(opt)
-    model.process_run()
+    model.train_predit()
