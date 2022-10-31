@@ -10,6 +10,7 @@
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 from tensorflow import feature_column
 from options import Options
 from utils.evaultaion import Eva
@@ -45,6 +46,10 @@ class autotask():
         time_o = time.time()
         end_time = time_o - time_i
         print("get data from mysql:", end_time)
+
+        mm = MinMaxScaler()
+        X_train = mm.fit_transform(X_train)
+        X_test = mm.fit_transform(X_test)
         # train_ds = self.df_to_dataset(X_train)
         # feature_columns = []
         #
@@ -54,9 +59,9 @@ class autotask():
         # feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
 
         # expand dimennsons
-        X = np.expand_dims(X_train.values.astype(float), axis=2)
+        X = np.expand_dims(X_train.astype(float), axis=2)
         inp_size = X.shape[1]
-        x_test = np.expand_dims(X_test.values.astype(float), axis=2)
+        x_test = np.expand_dims(X_test.astype(float), axis=2)
         # data = data.drop(labels=['num'], axis=1)
         return X ,x_test,y_train, y_test
 
