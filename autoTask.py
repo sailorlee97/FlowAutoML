@@ -60,7 +60,6 @@ class autotask():
 
         # expand dimennsons
         X = np.expand_dims(X_train.astype(float), axis=2)
-        inp_size = X.shape[1]
         x_test = np.expand_dims(X_test.astype(float), axis=2)
         # data = data.drop(labels=['num'], axis=1)
         return X ,x_test,y_train, y_test
@@ -74,7 +73,7 @@ class autotask():
 
         time_s = time.time()
         cnnmodel = autonetworks(self.opt.nclass, inp_size)
-        estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=100, batch_size=64, verbose=1)
+        estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=self.opt.epochs, batch_size=64, verbose=1)
         estimator.fit(X_train, y_train)
         time_e = time.time()
         train_time = time_e - time_s
