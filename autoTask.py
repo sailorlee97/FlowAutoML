@@ -41,20 +41,23 @@ class autotask():
     def select_from_model(self,x_data, y_data):
         '''
 
-        :param x_data:
-        :param y_data:
-        :return:
+        :param x_data: dataframe
+        :param y_data: dataframe
+        :return: list
         '''
 
 
         # 使用ExtraTrees作为特征筛选的依据
         sf_model: SelectFromModel = SelectFromModel(ExtraTreesClassifier())
         sf_model.fit(x_data, y_data)
-        print("保留的特征: ", x_data.columns[sf_model.get_support()])
-        print("特征重要性：", sf_model.estimator_.feature_importances_)
+
+        new_columns = x_data.columns[sf_model.get_support()]
+        columns = new_columns.tolist()
+        print("保留的特征: ", columns)
+        # print("特征重要性：", sf_model.estimator_.feature_importances_)
         # sf_model.threshold_
         # sf_model.get_support()  # get_support函数来得到到底是那几列被选中了
-        return sf_model.transform(x_data)  # 得到筛选的特征
+        return columns
 
     def obtaindata(self):
         '''
@@ -64,10 +67,12 @@ class autotask():
 
         time_i = time.time()
         # y_train = keras.utils.to_categorical(y_train, 10)
-        X_train, X_test, y_train, y_test = self.mysqldata.get_data()
+        X_train, X_test, y_train, y_test = self.mysqldata.get_data(limitnum=10000)
         time_o = time.time()
         end_time = time_o - time_i
         print("get data from mysql:", end_time)
+
+        new_columns = self.select_from_model(X_train,y_train)
 
         mm = MinMaxScaler()
         X_train = mm.fit_transform(X_train)
