@@ -20,7 +20,7 @@ class Options():
         self.parser.add_argument('--isInitialization', default='yes',
                                  help='yes - model train;no - we will load model trained.')
         self.parser.add_argument('--label', default='appname', help='data class labels.')
-        self.parser.add_argument('--epochs', default=500, help='number of epochs')
+        self.parser.add_argument('--epochs', default=400, help='number of epochs')
         self.parser.add_argument('--nclass', default=3, help='number class labels.')
         self.parser.add_argument('--host', default='rm-bp1mv8ua26rj84t32eo.mysql.rds.aliyuncs.com',
                                  help='server ip addr.')

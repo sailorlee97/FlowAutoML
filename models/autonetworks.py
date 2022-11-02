@@ -32,18 +32,17 @@ class autonetworks():
   def buildmodels(self):
 
     model = keras.models.Sequential()
-    model.add(Conv1D(64, 3, input_shape=(self.features, 1)))
-    model.add(Conv1D(64, 3, activation='relu'))
+    model.add(Conv1D(64, 3, padding= "same",activation='relu',input_shape=(self.features, 1)))
+    model.add(Conv1D(64, 3, padding= "same",activation='relu'))
     model.add(MaxPool1D(2))
-    model.add(Conv1D(128, 3, activation='relu'))
-    model.add(Conv1D(128, 3, activation='relu'))
+    model.add(Conv1D(128, 3, padding= "same",activation='relu'))
+    model.add(Conv1D(128, 3, padding= "same",activation='relu'))
     model.add(MaxPool1D(2))
     model.add(Flatten())
     for _ in range(self.hidden_layers - 1):
         model.add(keras.layers.Dense(self.layer_size,
                                      activation = 'relu'))
-
-    # model.add(keras.layers.Dense(self.layer_size, activation='selu'))
+    model.add(keras.layers.Dense(self.layer_size, activation='relu'))
     model.add(Dense(self.n_class, activation='softmax'))
     optimizer = keras.optimizers.RMSprop(self.learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer)

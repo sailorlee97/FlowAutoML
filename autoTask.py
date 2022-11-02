@@ -9,13 +9,14 @@
 """
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import SelectFromModel
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import feature_column
-from options import Options
 from utils.evaultaion import Eva
 from models.autonetworks import autonetworks
 from utils.csvdb import ConnectMysql
+from tensorflow import keras
 import pandas as pd
 import numpy as np
 import time
@@ -37,8 +38,29 @@ class autotask():
         ds = ds.prefetch(batch_size)
         return ds
 
+    def select_from_model(self,x_data, y_data):
+        '''
+
+        :param x_data:
+        :param y_data:
+        :return:
+        '''
+
+
+        # 使用ExtraTrees作为特征筛选的依据
+        sf_model: SelectFromModel = SelectFromModel(ExtraTreesClassifier())
+        sf_model.fit(x_data, y_data)
+        print("保留的特征: ", x_data.columns[sf_model.get_support()])
+        print("特征重要性：", sf_model.estimator_.feature_importances_)
+        # sf_model.threshold_
+        # sf_model.get_support()  # get_support函数来得到到底是那几列被选中了
+        return sf_model.transform(x_data)  # 得到筛选的特征
 
     def obtaindata(self):
+        '''
+
+        :return:
+        '''
 
         time_i = time.time()
         # y_train = keras.utils.to_categorical(y_train, 10)
@@ -50,6 +72,8 @@ class autotask():
         mm = MinMaxScaler()
         X_train = mm.fit_transform(X_train)
         X_test = mm.fit_transform(X_test)
+        y_train = keras.utils.to_categorical(y_train, self.opt.nclass)
+        y_test = keras.utils.to_categorical(y_test, self.opt.nclass)
         # train_ds = self.df_to_dataset(X_train)
         # feature_columns = []
         #
@@ -73,14 +97,16 @@ class autotask():
 
         time_s = time.time()
         cnnmodel = autonetworks(self.opt.nclass, inp_size)
-        estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=self.opt.epochs, batch_size=64, verbose=1)
-        estimator.fit(X_train, y_train)
+        model = cnnmodel.buildmodels()
+        model.fit(X_train, y_train, epochs=self.opt.epochs,batch_size=64)
+        # estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=self.opt.epochs, batch_size=64, verbose=1)
+        # estimator.fit(X_train, y_train)
         time_e = time.time()
         train_time = time_e - time_s
         print("train time:",train_time)
 
-        y_pred = estimator.predict(X_test)
-        print(classification_report(y_test,y_pred))
+        y_pred = model.predict(X_test)
+        print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
 #    @run_every(30,'day')
 
