@@ -27,11 +27,15 @@ class ConnectMysql():
         )
         self.issavetocsv = False
 
-    def get_data(self):
-
-        sql = "select * from test_flowfeature where appname in ('AcFun','Bing','duxiaoshi')"
-
-        df = pd.read_sql(sql, con=self.conn)
+    def get_data(self,app=["AcFun", "aiqiyijisuban", "aobidao"], limitnum=5000, feature="*"):
+        df = pd.DataFrame()
+        for i in app:
+            sql = "select {} from test_flowfeature where appname = {}" \
+                  " order by `Active Min` limit {}".format(feature, "'{}'".format(i), limitnum)
+            appfile = pd.read_sql(sql, con=self.conn)
+            df = df.append(appfile)
+        # sql = "select * from test_flowfeature where appname in ('AcFun','Bing','duxiaoshi')"
+        # df = pd.read_sql(sql, con=self.conn)
         #print(df)
         #df.to_csv('test.csv', index=False)
         print('Read from sqlserver table successfully!')
@@ -52,7 +56,7 @@ class ConnectMysql():
 
         y = process['appname']
         x = process.drop('appname',axis=1)
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=0)
 
         y_train = le.fit_transform(y_train)
         #print(y_train)
