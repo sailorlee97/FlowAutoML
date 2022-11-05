@@ -17,6 +17,7 @@ from utils.evaultaion import Eva
 from models.autonetworks import autonetworks
 from utils.csvdb import ConnectMysql
 from tensorflow import keras
+from sklearn.metrics import f1_score
 import pandas as pd
 import numpy as np
 import time
@@ -109,9 +110,9 @@ class autotask():
         time_e = time.time()
         train_time = time_e - time_s
         print("train time:",train_time)
-
         y_pred = model.predict(X_test)
-        print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
+        f1 = f1_score(y_test.argmax(-1), y_pred.argmax(-1), average='weighted')
+        return f1
 
 #    @run_every(30,'day')
 
