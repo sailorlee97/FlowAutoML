@@ -64,6 +64,23 @@ class ConnectMysql():
 
         return X_train, X_test, y_train, y_test
 
+    def total_get_data(self,app=["AcFun", "aiqiyijisuban", "aobidao"], limitnum=5000, feature="*"):
+        df = pd.DataFrame()
+        for i in app:
+            sql = "select {} from test_flowfeature where appname = {}" \
+                  " order by `Active Min` limit {}".format(feature, "'{}'".format(i), limitnum)
+            appfile = pd.read_sql(sql, con=self.conn)
+            df = df.append(appfile)
+        print('Read from sqlserver table successfully!')
+
+        # data = pd.read_csv("test.csv", header=0)
+
+        process = df.drop(
+            ["Flow ID", "Src IP", "Src Port", "Dst IP", "Dst Port", "Label", "appversion", "appplatform", "date",
+             "index","chargeperson"], axis=1, inplace=False)
+
+        return process
+
 if __name__ == '__main__':
     getdata = ConnectMysql()
     getdata.get_data()
