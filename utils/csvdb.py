@@ -68,7 +68,7 @@ class ConnectMysql():
         df = pd.DataFrame()
         for i in app:
             sql = "select {} from test_flowfeature where appname = {}" \
-                  " order by `Active Min` limit {}".format(feature, "'{}'".format(i), limitnum)
+                  " order by `Active_Min` limit {}".format(feature, "'{}'".format(i), limitnum)
             appfile = pd.read_sql(sql, con=self.conn)
             df = df.append(appfile)
         print('Read from sqlserver table successfully!')
@@ -76,7 +76,7 @@ class ConnectMysql():
         # data = pd.read_csv("test.csv", header=0)
 
         process = df.drop(
-            ["Flow ID", "Src IP", "Src Port", "Dst IP", "Dst Port", "Label", "appversion", "appplatform", "date",
+            ["Flow_ID", "Src_IP", "Src_Port", "Dst_IP", "Dst_Port", "Label", "appversion", "appplatform", "date",
              "index","chargeperson"], axis=1, inplace=False)
 
         return process

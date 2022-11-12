@@ -24,6 +24,7 @@ class Options():
         self.parser.add_argument('--nclass', default=3, help='number class labels.')
         self.parser.add_argument('--host', default='rm-bp1mv8ua26rj84t32eo.mysql.rds.aliyuncs.com',
                                  help='server ip addr.')
+        self.parser.add_argument('--batch_size', default=64, help='batch_size.')
         self.parser.add_argument('--port', default=3306, help='connect server port.')
         self.parser.add_argument('--username', default='runtrend', help='the name that server log in.')
         self.parser.add_argument('--password', default='4rfv*UHB', help='the password that server log in.')
