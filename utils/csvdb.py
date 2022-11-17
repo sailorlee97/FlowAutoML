@@ -28,6 +28,8 @@ class ConnectMysql():
         self.issavetocsv = False
 
     def get_data(self,app=["AcFun", "aiqiyijisuban", "aobidao"], limitnum=5000, feature="*"):
+
+        print('Start read data! Please wait a memont.')
         df = pd.DataFrame()
         for i in app:
             sql = "select {} from test_flowfeature where appname = {}" \
