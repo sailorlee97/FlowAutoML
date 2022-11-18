@@ -20,9 +20,10 @@ from utils.evaultaion import Eva
 from models.autonetworks import autonetworks
 from utils.csvdb import ConnectMysql
 from tensorflow import keras
-
+from tensorflow.python.keras.models import load_model
 from sklearn.metrics import f1_score
 import pandas as pd
+import os
 import numpy as np
 import time
 import tensorflow as tf
@@ -91,9 +92,9 @@ class autotask():
         # mm = MinMaxScaler()
         # X = mm.fit_transform(dataArray)
         # process numic values
-        X = self._process_num(dataArray)
+        # X = self._process_num(dataArray)
 
-        X = np.expand_dims(X.astype(float), axis=2)
+        X = np.expand_dims(dataArray.astype(float), axis=2)
         y_train = keras.utils.to_categorical(newlabels, self.opt.nclass)
 
         ds = tf.data.Dataset.from_tensor_slices((X, y_train))
@@ -179,7 +180,7 @@ class autotask():
         # data = data.drop(labels=['num'], axis=1)
         return X ,x_test,y_train, y_test
 
-    def obtain_data_train_test(self):
+    def _obtain_data_train_test(self):
         """
         get dataset from mysql
         the get train, val, and test dateset
@@ -202,12 +203,27 @@ class autotask():
         val_ds = self.df_to_dataset(val, shuffle=False, batch_size=self.opt.batch_size)
         test_ds = self.df_to_dataset(test, shuffle=False, batch_size=self.opt.batch_size)
 
+        # all_inputs = []
+        # encoded_features = []
+        #
+        # columns = dataframe.columns
+        # newcolumns = columns[0:len(columns) - 1]
+        #
+        # # Numeric features.
+        # feature_columns = []
+        #
+        # # numeric cols
+        # for header in newcolumns:
+        #     feature_columns.append(feature_column.numeric_column(header))
+        # feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         cnnmodel = autonetworks(self.opt.nclass, 77)
         model = cnnmodel.buildmodels()
         model.fit(train_ds,
                   validation_data=val_ds,
                   epochs=self.opt.epochs)
         loss, accuracy,precision,recall,auc = model.evaluate(test_ds)
+
+        model.save('./savedmodels/my_model')
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
         return auc
@@ -219,7 +235,7 @@ class autotask():
         :param y_test:
         :return:
         '''
-        y_pred = self.obtain_data_train_test()
+        y_pred = self._obtain_data_train_test()
         f1 = f1_score(y_test.argmax(-1), y_pred.argmax(-1), average='weighted')
 
         return f1
@@ -251,9 +267,26 @@ class autotask():
     def process_run(self):
         if(self.opt.isInitialization=='yes'):
 
-            predictions = self.train_predit()
+            if not os.path.exists('./savedmodels/my_model'):
 
-            # todo  设计获取参数进行下发
+                auc = self._obtain_data_train_test()
+
+            ## 设计获取参数进行下发
+            loaded_keras_model = load_model("./savedmodels/my_model")
+            keras_to_tflite_converter = tf.lite.TFLiteConverter.from_keras_model(loaded_keras_model)
+            keras_to_tflite_converter.optimizations = [
+                tf.lite.Optimize.OPTIMIZE_FOR_SIZE
+            ]
+            keras_to_tflite_converter.target_spec.supported_ops = [
+                tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
+                tf.lite.OpsSet.SELECT_TF_OPS  # enable TensorFlow ops.
+            ]
+            keras_tflite = keras_to_tflite_converter.convert()
+
+            if not os.path.exists('./tflite_models'):
+                os.mkdir('./tflite_models')
+            with open('./tflite_models/keras_tflite','wb') as f:
+                f.write(keras_tflite)
 
         elif(self.opt.isInitialization=='no'):
 
