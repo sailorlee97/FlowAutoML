@@ -297,6 +297,7 @@ class autotask():
 
             print(rec)
             if (rec<0.96 and precision<0.99):
+                # todo 增量在线学习
                 predictions = self.train_data()
             else:
                 print("No need to retrain, continue to use the current model.")
