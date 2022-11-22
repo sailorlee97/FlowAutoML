@@ -189,13 +189,18 @@ class autotask():
 
         :return: predict values
         """
+        if os.path.exists('./csv_data/dataframe.csv'):
+            ## if exist train data, read data
+            dataframe = pd.read_csv('./csv_data/dataframe.csv')
+        else:
+            ## read data from sql
+            time_i = time.time()
+            dataframe= self.mysqldata.total_get_data(limitnum=10000)
+            time_o = time.time()
+            end_time = time_o - time_i
+            print("get data from mysql:", end_time)
+            dataframe.to_csv('./csv_data/dataframe.csv')
 
-        time_i = time.time()
-        # y_train = keras.utils.to_categorical(y_train, 10)
-        dataframe= self.mysqldata.total_get_data(limitnum=10000)
-        time_o = time.time()
-        end_time = time_o - time_i
-        print("get data from mysql:", end_time)
         train, test = train_test_split(dataframe, test_size=0.2)
         train, val = train_test_split(train, test_size=0.2)
 
