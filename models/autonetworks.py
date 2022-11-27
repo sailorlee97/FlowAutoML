@@ -39,12 +39,9 @@ class autonetworks():
       keras.metrics.AUC(name='auc'),
       # keras.metrics.AUC(name='prc', curve='PR'), # precision-recall curve
     ]
-    # self.features_layer = feature_layer
-
   def buildmodels(self):
 
     model = keras.models.Sequential()
-    # model.add(self.features_layer)
     model.add(Conv1D(64, 3, padding= "same",activation='relu',input_shape=(self.features, 1)))
     model.add(Conv1D(64, 3, padding= "same",activation='relu'))
     model.add(MaxPool1D(2))
