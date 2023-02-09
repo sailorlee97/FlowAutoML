@@ -22,12 +22,12 @@ class Options():
         self.parser.add_argument('--label', default='appname', help='data class labels.')
         self.parser.add_argument('--epochs', default=40, help='number of epochs')
         self.parser.add_argument('--nclass', default=3, help='number class labels.')
-        self.parser.add_argument('--host', default='rm-bp1mv8ua26rj84t32eo.mysql.rds.aliyuncs.com',
+        self.parser.add_argument('--host', default='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
                                  help='server ip addr.')
         self.parser.add_argument('--batch_size', default=64, help='batch_size.')
-        self.parser.add_argument('--port', default=3306, help='connect server port.')
+        self.parser.add_argument('--port', default=26618, help='connect server port.')
         self.parser.add_argument('--username', default='runtrend', help='the name that server log in.')
-        self.parser.add_argument('--password', default='4rfv*UHB', help='the password that server log in.')
+        self.parser.add_argument('--password', default='1qaz@WSX', help='the password that server log in.')
         self.parser.add_argument('--databaseName', default='flowfeature', help='the name that database log in.')
         self.parser.add_argument('--tableName', default='test_flowfeature', help='the name of table.')
         self.parser.add_argument('--charset', default='utf8mb4', help='the name of word.')
