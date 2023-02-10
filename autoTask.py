@@ -82,6 +82,7 @@ class autotask():
         """
         dataframe = dataframe.copy()
         labels = dataframe.pop('appname')
+        # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
         dataArray = dataframe.values
 
         # propress labels
@@ -95,9 +96,13 @@ class autotask():
         # X = self._process_num(dataArray)
 
         X = np.expand_dims(dataArray.astype(float), axis=2)
+
+        lenx = len(X)
+        newx = X.reshape((lenx,6,6,1))
+        print(newx.shape)
         y_train = keras.utils.to_categorical(newlabels, self.opt.nclass)
 
-        ds = tf.data.Dataset.from_tensor_slices((X, y_train))
+        ds = tf.data.Dataset.from_tensor_slices((newx, y_train))
         if shuffle:
             ds = ds.shuffle(buffer_size=len(dataframe))
         ds = ds.batch(batch_size)
@@ -189,17 +194,59 @@ class autotask():
 
         :return: predict values
         """
-        if os.path.exists('./csv_data/dataframe.csv'):
+        if os.path.exists('./csv_data/dataframe10.csv'):
             ## if exist train data, read data
-            dataframe = pd.read_csv('./csv_data/dataframe.csv')
+            dataframe0 = pd.read_csv('./csv_data/dataframe10.csv')
         else:
             ## read data from sql
             time_i = time.time()
-            dataframe= self.mysqldata.total_get_data(limitnum=10000)
+            dataframe0= self.mysqldata.total_get_data(limitnum=10000)
             time_o = time.time()
             end_time = time_o - time_i
             print("get data from mysql:", end_time)
-            dataframe.to_csv('./csv_data/dataframe.csv')
+            dataframe0.to_csv('./csv_data/dataframe.csv')
+    # 25个特征
+        # dataframe = dataframe0[
+        #     ['ACK_Flag_Cnt', 'Active_Max', 'Active_Mean', 'Active_Min', 'Active_Std', 'Bwd_Blk_Rate_Avg',
+        #      'Bwd_Byts/b_Avg', 'Bwd_Header_Len', 'Bwd_IAT_Max', 'Bwd_IAT_Mean', 'Bwd_IAT_Min', 'Bwd_IAT_Std',
+        #      'Bwd_IAT_Tot', 'Bwd_PSH_Flags', 'Bwd_Pkt_Len_Max', 'Bwd_Pkt_Len_Mean', 'Bwd_Pkt_Len_Min',
+        #      'Bwd_Pkt_Len_Std', 'Bwd_Pkts/b_Avg', 'Bwd_Pkts/s', 'Bwd_Seg_Size_Avg', 'Bwd_URG_Flags', 'CWE_Flag_Count',
+        #      'Down/Up_Ratio', 'ECE_Flag_Cnt', 'appname']]
+        # # print(dataframe0.columns)
+    # 36个特征
+        dataframe = dataframe0[[
+        'Pkt_Len_Std', 'Pkt_Len_Var', 'FIN_Flag_Cnt', 'SYN_Flag_Cnt',
+        'RST_Flag_Cnt', 'PSH_Flag_Cnt', 'ACK_Flag_Cnt', 'URG_Flag_Cnt',
+        'CWE_Flag_Count', 'ECE_Flag_Cnt', 'Down/Up_Ratio', 'Pkt_Size_Avg',
+        'Fwd_Seg_Size_Avg', 'Bwd_Seg_Size_Avg', 'Fwd_Byts/b_Avg',
+        'Fwd_Pkts/b_Avg', 'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg',
+        'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg', 'Subflow_Fwd_Pkts',
+        'Subflow_Fwd_Byts', 'Subflow_Bwd_Pkts', 'Subflow_Bwd_Byts',
+        'Init_Fwd_Win_Byts', 'Init_Bwd_Win_Byts', 'Fwd_Act_Data_Pkts',
+        'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
+        'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
+        'appname']]
+    # 64个特征
+       #  dataframe = dataframe0[[
+       # 'Bwd_Pkt_Len_Std', 'Flow_Byts/s', 'Flow_Pkts/s', 'Flow_IAT_Mean',
+       # 'Flow_IAT_Std', 'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Tot',
+       # 'Fwd_IAT_Mean', 'Fwd_IAT_Std', 'Fwd_IAT_Max', 'Fwd_IAT_Min',
+       # 'Bwd_IAT_Tot', 'Bwd_IAT_Mean', 'Bwd_IAT_Std', 'Bwd_IAT_Max',
+       # 'Bwd_IAT_Min', 'Fwd_PSH_Flags', 'Bwd_PSH_Flags', 'Fwd_URG_Flags',
+       # 'Bwd_URG_Flags', 'Fwd_Header_Len', 'Bwd_Header_Len', 'Fwd_Pkts/s',
+       # 'Bwd_Pkts/s', 'Pkt_Len_Min', 'Pkt_Len_Max', 'Pkt_Len_Mean',
+       # 'Pkt_Len_Std', 'Pkt_Len_Var', 'FIN_Flag_Cnt', 'SYN_Flag_Cnt',
+       # 'RST_Flag_Cnt', 'PSH_Flag_Cnt', 'ACK_Flag_Cnt', 'URG_Flag_Cnt',
+       # 'CWE_Flag_Count', 'ECE_Flag_Cnt', 'Down/Up_Ratio', 'Pkt_Size_Avg',
+       # 'Fwd_Seg_Size_Avg', 'Bwd_Seg_Size_Avg', 'Fwd_Byts/b_Avg',
+       # 'Fwd_Pkts/b_Avg', 'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg',
+       # 'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg', 'Subflow_Fwd_Pkts',
+       # 'Subflow_Fwd_Byts', 'Subflow_Bwd_Pkts', 'Subflow_Bwd_Byts',
+       # 'Init_Fwd_Win_Byts', 'Init_Bwd_Win_Byts', 'Fwd_Act_Data_Pkts',
+       # 'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
+       # 'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
+       # 'appname']]
+
 
         train, test = train_test_split(dataframe, test_size=0.2)
         train, val = train_test_split(train, test_size=0.2)
@@ -221,14 +268,19 @@ class autotask():
         # for header in newcolumns:
         #     feature_columns.append(feature_column.numeric_column(header))
         # feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
-        cnnmodel = autonetworks(self.opt.nclass, 77)
+        cnnmodel = autonetworks(self.opt.nclass, 36)
         model = cnnmodel.buildmodels()
         model.fit(train_ds,
                   validation_data=val_ds,
                   epochs=self.opt.epochs)
         loss, accuracy,precision,recall,auc = model.evaluate(test_ds)
 
-        model.save('./savedmodels/my_model')
+        # prediction = model.predict_generator(test_ds, verbose=1)
+        # predict_label = np.argmax(prediction, axis=1)
+        # true_label = test_ds.classes
+
+
+        model.save('./savedmodels/my_model.h5')
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
         return auc
@@ -276,22 +328,22 @@ class autotask():
 
                 auc = self._obtain_data_train_test()
 
-            ## 设计获取参数进行下发
-            loaded_keras_model = load_model("./savedmodels/my_model")
-            keras_to_tflite_converter = tf.lite.TFLiteConverter.from_keras_model(loaded_keras_model)
-            keras_to_tflite_converter.optimizations = [
-                tf.lite.Optimize.OPTIMIZE_FOR_SIZE
-            ]
-            keras_to_tflite_converter.target_spec.supported_ops = [
-                tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
-                tf.lite.OpsSet.SELECT_TF_OPS  # enable TensorFlow ops.
-            ]
-            keras_tflite = keras_to_tflite_converter.convert()
-
-            if not os.path.exists('./tflite_models'):
-                os.mkdir('./tflite_models')
-            with open('./tflite_models/keras_tflite','wb') as f:
-                f.write(keras_tflite)
+            # ## 设计获取参数进行下发
+            # loaded_keras_model = load_model("./savedmodels/my_model")
+            # keras_to_tflite_converter = tf.lite.TFLiteConverter.from_keras_model(loaded_keras_model)
+            # keras_to_tflite_converter.optimizations = [
+            #     tf.lite.Optimize.OPTIMIZE_FOR_SIZE
+            # ]
+            # keras_to_tflite_converter.target_spec.supported_ops = [
+            #     tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
+            #     tf.lite.OpsSet.SELECT_TF_OPS  # enable TensorFlow ops.
+            # ]
+            # keras_tflite = keras_to_tflite_converter.convert()
+            #
+            # if not os.path.exists('./tflite_models'):
+            #     os.mkdir('./tflite_models')
+            # with open('./tflite_models/keras_tflite','wb') as f:
+            #     f.write(keras_tflite)
 
         elif(self.opt.isInitialization=='no'):
 
