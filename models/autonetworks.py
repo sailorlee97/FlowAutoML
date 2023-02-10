@@ -8,15 +8,18 @@
 """
 import pandas as pd
 import numpy as np
+from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Masking
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn import preprocessing
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import keras
+
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from tensorflow.python.keras.layers import Dense, Conv1D, MaxPool1D, Flatten, concatenate
+from tensorflow.python.keras.models import Sequential
+# from  tensorflow.python.keras.layers import Dense, Conv2D, MaxPool2D, Flatten
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 import time
@@ -42,13 +45,39 @@ class autonetworks():
   def buildmodels(self):
 
     model = keras.models.Sequential()
-    model.add(Conv1D(64, 3, padding= "same",activation='relu',input_shape=(self.features, 1)))
-    model.add(Conv1D(64, 3, padding= "same",activation='relu'))
-    model.add(MaxPool1D(2))
-    model.add(Conv1D(128, 3, padding= "same",activation='relu'))
-    model.add(Conv1D(128, 3, padding= "same",activation='relu'))
-    model.add(MaxPool1D(2))
+    # model.add(Conv2D(filters=32, kernel_size=3, padding= "same",activation='relu',input_shape=[11,7, 1]))
+    # model.add(Conv2D(64, 3, padding= "same",activation='relu'))
+    # model.add(MaxPool2D(2))
+    # model.add(Conv2D(128, 3, padding= "same",activation='relu'))
+    # model.add(Conv2D(128, 3, padding= "same",activation='relu'))
+    # model.add(MaxPool2D(2))
+    # model.add(Flatten())
+#  输入8*8*1
+    # model.add(Conv2D(filters=8, kernel_size=(3,3), activation='relu', input_shape=[8,8,1]))
+    # # model.add(Conv2D(8, kernel_size=(2,2), activation='relu'))
+    # model.add(MaxPool2D(pool_size=(2,2)))
+    # model.add(Conv2D(16, kernel_size=(2,2),activation='relu'))
+    # # model.add(Conv2D(16, kernel_size=(2,2), activation='relu'))
+    # # model.add(MaxPool2D(pool_size=(2,2)))
+    # model.add(Flatten())
+#  输入5*5*1
+#     model.add(Conv2D(filters=32, kernel_size=(2,2), activation='relu', input_shape=[5,5,1]))
+#     # model.add(Conv2D(8, kernel_size=(2,2), activation='relu'))
+#     model.add(MaxPool2D(pool_size=(2,2)))
+#     # model.add(Conv2D(16, kernel_size=(2,2),activation='relu'))
+#     # model.add(Conv2D(16, kernel_size=(2,2), activation='relu'))
+#     # model.add(MaxPool2D(pool_size=(2,2)))
+#     model.add(Flatten())
+
+#  输入6*6*1
+    model.add(Conv2D(filters=32, kernel_size=(2,2), activation='relu', input_shape=[6,6,1]))
+    model.add(Conv2D(filters=64, kernel_size=(2,2), activation='relu'))
+    model.add(MaxPool2D(pool_size=(2,2)))
+    # model.add(Conv2D(64, kernel_size=(2,2),activation='relu'))
+    # model.add(Conv2D(16, kernel_size=(2,2), activation='relu'))
+    # model.add(MaxPool2D(pool_size=(2,2)))
     model.add(Flatten())
+
     for _ in range(self.hidden_layers - 1):
         model.add(keras.layers.Dense(self.layer_size,
                                      activation = 'relu'))
