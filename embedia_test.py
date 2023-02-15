@@ -9,17 +9,20 @@
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+import numpy as np
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from embedia.model_generator.project_options import *
 from embedia.project_generator import ProjectGenerator
-from propress_data import preproessData
+
 import pandas as pd
 
 OUTPUT_FOLDER = 'outputs/'
 PROJECT_NAME  = 'flow10model'
-MODEL_FILE    = 'savedmodel/my_model.h5'
+MODEL_FILE    = 'savedmodels/my_model.h5'
 
-processdata = preproessData("./dataset/dataframe.csv")
-df0 = pd.read_csv(processdata.path)
+
+df0 = pd.read_csv('.\csv_data\dataframe10.csv')
+
 # 64个特性
 # df=df0[[  'Bwd_Pkt_Len_Std', 'Flow_Byts/s', 'Flow_Pkts/s', 'Flow_IAT_Mean',
 #        'Flow_IAT_Std', 'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Tot',
@@ -62,9 +65,22 @@ df = df0[[
     'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
     'appname']]
 
-label,x = processdata.df_to_dataset(df)
+dataframe = df.copy()
+labels = dataframe.pop('appname')
+le = LabelEncoder()
+label = le.fit_transform(labels)
+
+# dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
+dataArray = dataframe.values
+mm = MinMaxScaler()
+X = mm.fit_transform(dataArray)
+X = np.expand_dims(X.astype(float), axis=2)
+lenx = len(X)
+newx = X.reshape((lenx,6,6,1))
+
+
 # mutual = self.select_features(x,label)
-x_train,x_test,y_train,y_test = train_test_split(x,label,test_size=0.1,random_state=0)
+x_train,x_test,y_train,y_test = train_test_split(newx,label,test_size=0.1,random_state=0)
 model = tf.keras.models.load_model(MODEL_FILE)
 
 model._name = 'flow10model'
