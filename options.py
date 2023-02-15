@@ -20,7 +20,7 @@ class Options():
         self.parser.add_argument('--isInitialization', default='yes',
                                  help='yes - model train;no - we will load model trained.')
         self.parser.add_argument('--label', default='appname', help='data class labels.')
-        self.parser.add_argument('--epochs', default=1, help='number of epochs')
+        self.parser.add_argument('--epochs', default=100, help='number of epochs')
         self.parser.add_argument('--nclass', default=10, help='number class labels.')
         self.parser.add_argument('--host', default='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
                                  help='server ip addr.')
