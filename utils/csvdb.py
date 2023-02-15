@@ -19,10 +19,10 @@ class ConnectMysql():
     def __init__(self):
         self.conn = pymysql.connect(
             user='runtrend',
-            password='4rfv*UHB',
-            host='rm-bp1mv8ua26rj84t32eo.mysql.rds.aliyuncs.com',
+            password='1qaz@WSX',
+            host='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
             database='flowfeature',
-            port=3306,
+            port=26618,
             charset='utf8mb4',
         )
         self.issavetocsv = False
