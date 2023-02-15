@@ -7,15 +7,20 @@
 @FileName: autoTask.py
 @Software: PyCharm
 """
+import itertools
+
 from keras.layers import Normalization
 from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn.metrics import classification_report
+from matplotlib import pyplot as plt
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import SelectFromModel
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import feature_column
+
+from utils.plot_cm import plot_conf
 from utils.evaultaion import Eva
 from models.autonetworks import autonetworks
 from utils.csvdb import ConnectMysql
@@ -46,7 +51,12 @@ class autotask():
         le = LabelEncoder()
         newlabels = le.fit_transform(labels)
 
-        return newlabels
+        res = {}
+        for cl in le.classes_:
+            res.update({cl: le.transform([cl])[0]})
+        print(res)
+
+        return newlabels,res
 
     def _process_num(self,num):
         """
@@ -71,6 +81,8 @@ class autotask():
 
         return X
 
+
+
     def df_to_dataset(self, dataframe, shuffle=True, batch_size=32):
         """
         add
@@ -86,16 +98,14 @@ class autotask():
         dataArray = dataframe.values
 
         # propress labels
-        newlabels = self._propress_label(labels)
+        newlabels,res = self._propress_label(labels)
         # le = LabelEncoder()
         # newlabels = le.fit_transform(labels)
 
-        # mm = MinMaxScaler()
-        # X = mm.fit_transform(dataArray)
         # process numic values
-        # X = self._process_num(dataArray)
+        X = self._process_num(dataArray)
 
-        X = np.expand_dims(dataArray.astype(float), axis=2)
+        X = np.expand_dims(X.astype(float), axis=2)
 
         lenx = len(X)
         newx = X.reshape((lenx,6,6,1))
@@ -107,7 +117,7 @@ class autotask():
             ds = ds.shuffle(buffer_size=len(dataframe))
         ds = ds.batch(batch_size)
         ds = ds.prefetch(batch_size)
-        return ds
+        return ds,res,newlabels
 
     def _get_normalization_layer(self,name, dataset):
         """
@@ -194,6 +204,8 @@ class autotask():
 
         :return: predict values
         """
+        # appname=["aiqiyi","bilibili","douyin","hepingjingying","QQyinyue","tengxunhuiyi","wangzherongyao","yuanshen","zhanshuangpamishi","zuoyebang"]
+
         if os.path.exists('./csv_data/dataframe10.csv'):
             ## if exist train data, read data
             dataframe0 = pd.read_csv('./csv_data/dataframe10.csv')
@@ -251,9 +263,12 @@ class autotask():
         train, test = train_test_split(dataframe, test_size=0.2)
         train, val = train_test_split(train, test_size=0.2)
 
-        train_ds = self.df_to_dataset(train, batch_size=self.opt.batch_size)
-        val_ds = self.df_to_dataset(val, shuffle=False, batch_size=self.opt.batch_size)
-        test_ds = self.df_to_dataset(test, shuffle=False, batch_size=self.opt.batch_size)
+        train_ds,res_tr,truelabels_tr= self.df_to_dataset(train, batch_size=self.opt.batch_size)
+        val_ds,res_va,truelabels_va= self.df_to_dataset(val, shuffle=False, batch_size=self.opt.batch_size)
+        test_ds,res_te,truelabels_te= self.df_to_dataset(test, shuffle=False, batch_size=self.opt.batch_size)
+
+        reskey=list(res_te.keys())
+        print(reskey)
 
         # all_inputs = []
         # encoded_features = []
@@ -275,9 +290,9 @@ class autotask():
                   epochs=self.opt.epochs)
         loss, accuracy,precision,recall,auc = model.evaluate(test_ds)
 
-        # prediction = model.predict_generator(test_ds, verbose=1)
-        # predict_label = np.argmax(prediction, axis=1)
-        # true_label = test_ds.classes
+        prediction = model.predict_generator(test_ds, verbose=1)
+        predict_label = np.argmax(prediction, axis=1)
+        plot_conf(predict_label, truelabels_te, reskey)
 
 
         model.save('./savedmodels/my_model.h5')
