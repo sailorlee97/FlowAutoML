@@ -16,6 +16,55 @@ from embedia.project_generator import ProjectGenerator
 
 import pandas as pd
 
+class embediaModel():
+
+    def __init__(self,OUTPUT_FOLDER,PROJECT_NAME,MODEL_FILE,Test_Example,Feature_List):
+
+        self.OUTPUT_FOLDER = OUTPUT_FOLDER
+        self.PROJECT_NAME = PROJECT_NAME
+        self.MODEL_FILE = MODEL_FILE
+        self.Test_Example = Test_Example
+        self.Feature_List = Feature_List
+
+    def output_model_c(self):
+
+        df0 = pd.read_csv(self.Test_Example)
+        df = df0[self.Feature_List]
+        dataframe = df.copy()
+        labels = dataframe.pop('appname')
+        le = LabelEncoder()
+        label = le.fit_transform(labels)
+        dataArray = dataframe.values
+        mm = MinMaxScaler()
+        X = mm.fit_transform(dataArray)
+        X = np.expand_dims(X.astype(float), axis=2)
+        lenx = len(X)
+        newx = X.reshape((lenx, 6, 6, 1))
+        x_train, x_test, y_train, y_test = train_test_split(newx, label, test_size=0.1, random_state=0)
+        model = tf.keras.models.load_model(self.MODEL_FILE)
+
+        model._name = self.PROJECT_NAME
+
+        example_number = 33
+        sample = x_test[:example_number]
+        comment= "number %d example for test" % y_test[example_number]
+
+        options = ProjectOptions()
+        options.project_type = ProjectType.C
+        options.data_type = ModelDataType.FIXED8
+        options.debug_mode = DebugMode.DISCARD
+        options.example_data = sample
+        options.example_comment = comment
+        options.example_ids = y_test[:example_number]
+
+        options.files = ProjectFiles.ALL
+
+        generator = ProjectGenerator(options)
+        generator.create_project(OUTPUT_FOLDER, PROJECT_NAME, model, options)
+
+        print("Project", PROJECT_NAME, "exported in", OUTPUT_FOLDER)
+        print("\n" + comment)
+
 OUTPUT_FOLDER = 'outputs/'
 PROJECT_NAME  = 'flow10model'
 MODEL_FILE    = 'savedmodels/my_model.h5'
