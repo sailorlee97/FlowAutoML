@@ -1,5 +1,5 @@
 import itertools
-
+import matplotlib as mpl
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
@@ -15,6 +15,7 @@ def plot_confusion_matrix(cm,
 
     if cmap is None:
         cmap = plt.get_cmap('Blues')
+    mpl.use('TkAgg')  # !IMPORTANT
 
     plt.figure(figsize=(15, 12))  # (15,12)
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
