@@ -51,7 +51,7 @@ class embediaModel():
 
         options = ProjectOptions()
         options.project_type = ProjectType.C
-        options.data_type = ModelDataType.FIXED8
+        options.data_type = ModelDataType.FIXED32
         options.debug_mode = DebugMode.DISCARD
         options.example_data = sample
         options.example_comment = comment
@@ -60,17 +60,17 @@ class embediaModel():
         options.files = ProjectFiles.ALL
 
         generator = ProjectGenerator(options)
-        generator.create_project(OUTPUT_FOLDER, PROJECT_NAME, model, options)
+        generator.create_project(self.OUTPUT_FOLDER, self.PROJECT_NAME, model, options)
 
-        print("Project", PROJECT_NAME, "exported in", OUTPUT_FOLDER)
+        print("Project", self.PROJECT_NAME, "exported in", self.OUTPUT_FOLDER)
         print("\n" + comment)
 
-OUTPUT_FOLDER = 'outputs/'
-PROJECT_NAME  = 'flow10model'
-MODEL_FILE    = 'savedmodels/my_model.h5'
-
-
-df0 = pd.read_csv('.\csv_data\dataframe10.csv')
+# OUTPUT_FOLDER = 'outputs/'
+# PROJECT_NAME  = 'flow10model'
+# MODEL_FILE    = 'savedmodels/my_model.h5'
+#
+#
+# df0 = pd.read_csv('.\csv_data\dataframe10.csv')
 
 # 64个特性
 # df=df0[[  'Bwd_Pkt_Len_Std', 'Flow_Byts/s', 'Flow_Pkts/s', 'Flow_IAT_Mean',
@@ -101,72 +101,71 @@ df0 = pd.read_csv('.\csv_data\dataframe10.csv')
 #         'Down/Up_Ratio', 'ECE_Flag_Cnt', 'appname']]
 
 # 36个特征
-df = df0[[
-    'Pkt_Len_Std', 'Pkt_Len_Var', 'FIN_Flag_Cnt', 'SYN_Flag_Cnt',
-    'RST_Flag_Cnt', 'PSH_Flag_Cnt', 'ACK_Flag_Cnt', 'URG_Flag_Cnt',
-    'CWE_Flag_Count', 'ECE_Flag_Cnt', 'Down/Up_Ratio', 'Pkt_Size_Avg',
-    'Fwd_Seg_Size_Avg', 'Bwd_Seg_Size_Avg', 'Fwd_Byts/b_Avg',
-    'Fwd_Pkts/b_Avg', 'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg',
-    'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg', 'Subflow_Fwd_Pkts',
-    'Subflow_Fwd_Byts', 'Subflow_Bwd_Pkts', 'Subflow_Bwd_Byts',
-    'Init_Fwd_Win_Byts', 'Init_Bwd_Win_Byts', 'Fwd_Act_Data_Pkts',
-    'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
-    'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
-    'appname']]
+# df = df0[[
+#     'Pkt_Len_Std', 'Pkt_Len_Var', 'FIN_Flag_Cnt', 'SYN_Flag_Cnt',
+#     'RST_Flag_Cnt', 'PSH_Flag_Cnt', 'ACK_Flag_Cnt', 'URG_Flag_Cnt',
+#     'CWE_Flag_Count', 'ECE_Flag_Cnt', 'Down/Up_Ratio', 'Pkt_Size_Avg',
+#     'Fwd_Seg_Size_Avg', 'Bwd_Seg_Size_Avg', 'Fwd_Byts/b_Avg',
+#     'Fwd_Pkts/b_Avg', 'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg',
+#     'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg', 'Subflow_Fwd_Pkts',
+#     'Subflow_Fwd_Byts', 'Subflow_Bwd_Pkts', 'Subflow_Bwd_Byts',
+#     'Init_Fwd_Win_Byts', 'Init_Bwd_Win_Byts', 'Fwd_Act_Data_Pkts',
+#     'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
+#     'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
+#     'appname']]
 
-dataframe = df.copy()
-labels = dataframe.pop('appname')
-le = LabelEncoder()
-label = le.fit_transform(labels)
+# dataframe = df.copy()
+# labels = dataframe.pop('appname')
+# le = LabelEncoder()
+# label = le.fit_transform(labels)
 
 # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
-dataArray = dataframe.values
-mm = MinMaxScaler()
-X = mm.fit_transform(dataArray)
-X = np.expand_dims(X.astype(float), axis=2)
-lenx = len(X)
-newx = X.reshape((lenx,6,6,1))
+# dataArray = dataframe.values
+# mm = MinMaxScaler()
+# X = mm.fit_transform(dataArray)
+# X = np.expand_dims(X.astype(float), axis=2)
+# lenx = len(X)
+# newx = X.reshape((lenx,6,6,1))
 
 
 # mutual = self.select_features(x,label)
-x_train,x_test,y_train,y_test = train_test_split(newx,label,test_size=0.1,random_state=0)
-model = tf.keras.models.load_model(MODEL_FILE)
-
-model._name = 'flow10model'
-
-example_number = 33
-sample = x_test[:example_number]
-comment= "number %d example for test" % y_test[example_number]
-
-options = ProjectOptions()
+# x_train,x_test,y_train,y_test = train_test_split(newx,label,test_size=0.1,random_state=0)
+# model = tf.keras.models.load_model(MODEL_FILE)
+#
+# model._name = 'flow10model'
+#
+# example_number = 33
+# sample = x_test[:example_number]
+# comment= "number %d example for test" % y_test[example_number]
+#
+# options = ProjectOptions()
 
 # options.project_type = ProjectType.ARDUINO
-options.project_type = ProjectType.C
+# options.project_type = ProjectType.C
 # options.project_type = ProjectType.CODEBLOCK
 # options.project_type = ProjectType.CPP
 
 # options.data_type = ModelDataType.FLOAT
 # options.data_type = ModelDataType.FIXED32
 # options.data_type = ModelDataType.FIXED16
-options.data_type = ModelDataType.FIXED8
+# options.data_type = ModelDataType.FIXED8
 
-options.debug_mode = DebugMode.DISCARD
+# options.debug_mode = DebugMode.DISCARD
 # options.debug_mode = DebugMode.DISABLED
 # options.debug_mode = DebugMode.HEADERS
 # options.debug_mode = DebugMode.DATA
 
-options.example_data = sample
-options.example_comment = comment
-options.example_ids = y_test[:example_number]
+# options.example_data = sample
+# options.example_comment = comment
+# options.example_ids = y_test[:example_number]
 
-options.files = ProjectFiles.ALL
+# options.files = ProjectFiles.ALL
 # options.files = {ProjectFiles.MAIN}
 # options.files = {ProjectFiles.MODEL}
 # options.files = {ProjectFiles.LIBRARY}
 
-generator = ProjectGenerator(options)
-generator.create_project(OUTPUT_FOLDER, PROJECT_NAME, model, options)
+# generator = ProjectGenerator(options)
+# generator.create_project(OUTPUT_FOLDER, PROJECT_NAME, model, options)
 
-print("Project", PROJECT_NAME, "exported in", OUTPUT_FOLDER)
-print("\n"+comment)
-
+# print("Project", PROJECT_NAME, "exported in", OUTPUT_FOLDER)
+# print("\n"+comment)
