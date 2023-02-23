@@ -26,11 +26,17 @@ class embediaModel():
         self.Test_Example = Test_Example
         self.Feature_List = Feature_List
 
+    def _delinf(self,dataframe):
+        newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
+
+        return newdf
+
     def output_model_c(self):
 
         df0 = pd.read_csv(self.Test_Example)
         df = df0[self.Feature_List]
-        dataframe = df.copy()
+        newdf = self._delinf(df)
+        dataframe = newdf.copy()
         labels = dataframe.pop('appname')
         le = LabelEncoder()
         label = le.fit_transform(labels)
