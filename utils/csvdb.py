@@ -19,7 +19,7 @@ class ConnectMysql():
     def __init__(self):
         self.conn = pymysql.connect(
             user='runtrend',
-            password='1qaz@WSX',
+            password='4rfv*UHB',
             host='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
             database='flowfeature',
             port=26618,
