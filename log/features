@@ -1,36 +1,36 @@
-Init_Bwd_Win_Byts
-Flow_IAT_Max
-Bwd_Pkts/s
-Pkt_Len_Min
-Bwd_Header_Len
-Flow_IAT_Mean
-Flow_Pkts/s
-Pkt_Len_Max
-Bwd_IAT_Tot
-Bwd_IAT_Max
-Bwd_IAT_Mean
-Flow_IAT_Min
-Bwd_Pkt_Len_Max
-Pkt_Len_Var
-Pkt_Len_Std
-Bwd_IAT_Min
-Subflow_Bwd_Byts
-Fwd_Pkts/s
-Fwd_Header_Len
-Flow_IAT_Std
-Fwd_Pkt_Len_Max
-Pkt_Len_Mean
-TotLen_Bwd_Pkts
-Fwd_Seg_Size_Avg
-Bwd_Seg_Size_Avg
-Fwd_Pkt_Len_Mean
-Fwd_IAT_Max
-Bwd_Pkt_Len_Std
-Bwd_Pkt_Len_Mean
-Flow_Byts/s
-Subflow_Fwd_Byts
-Fwd_IAT_Tot
-Fwd_Pkt_Len_Std
-TotLen_Fwd_Pkts
-Fwd_IAT_Mean
-Fwd_IAT_Min
+Packet Length Min
+fLenMax
+fLenMin
+Fwd Segment Size Avg
+Packet Length Variance
+fLenMean
+Packet Length Std
+Packet Length Mean
+Flow IAT Var
+bLenMin
+bTcpWindow
+Packet Length Max
+Fwd IAT Var
+Flow Bytes/s
+Bwd IAT Var
+Average Packet Size
+fLenSd
+psh
+bLenMax
+Flow IAT Max
+Flow IAT Min
+fLenVar
+Flow IAT Mean
+FlowDuration
+Fwd PSH flags
+TotLenFwdBytes
+Fwd IAT Max
+fTcpWindow
+TotLenBwdBytes
+Flow IAT Total
+Bwd Segment Size Avg
+bLenMean
+Bwd PSH Flags
+Fwd IAT Min
+bLenVar
+Bwd IAT Max
