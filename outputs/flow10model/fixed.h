@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
-typedef int8_t fixed;
-typedef int16_t dfixed;
+typedef int32_t fixed;
+typedef int64_t dfixed;
 
-#define FIX_SIZE 8
-#define FIX_FRC_SZ 3
+#define FIX_SIZE 32
+#define FIX_FRC_SZ 18
 #define FIX_INT_SZ (FIX_SIZE - FIX_FRC_SZ)
 #define FIX_FRC_MSK  (((fixed)1 << FIX_FRC_SZ) - 1)
 
@@ -18,13 +18,9 @@ typedef int16_t dfixed;
 #define FIX_ONE ((fixed)((fixed)1 << FIX_FRC_SZ))
 #define FIX_TWO (FIX_ONE + FIX_ONE)
 #define FIX_E  FLOAT_TO_FIXED(2.7182818284590452354)
-// FIX_EXP_MAX = ln(FIX_MAX), recalculate if FIX_FRC_SZ change
-#define FIX_EXP_MAX FLOAT_TO_FIXED(2.77258872224)
 #define FIX_PI FLOAT_TO_FIXED(3.14159265358979323846)
 #define FIX_MAX (fixed)(((dfixed)1 << (FIX_SIZE-1)) -1)
 #define FIX_MIN (-FIX_MAX)
-#define DFIX_MAX ((dfixed)FIX_MAX << FIX_FRC_SZ)
-#define DFIX_MIN (-DFIX_MAX)
 
 //////////////////////////////////// Macros de conversion ////////////////////////////////////
 
@@ -39,6 +35,8 @@ typedef int16_t dfixed;
 #define FL2FX(F) FLOAT_TO_FIXED(F)
 #define FX2FL(F) FIXED_TO_FLOAT(F)
 
+
+
 //////////////////////////////////// Macros aritmeticas ////////////////////////////////////
 
 #define FIXED_ADD(A,B) ((A) + (B))
@@ -46,20 +44,11 @@ typedef int16_t dfixed;
 #define FIXED_SUB(A,B) ((A) - (B))
 
 #define FIXED_MUL(A,B)            \
-    ((fixed)(((dfixed)(A) * (dfixed)(B)) >> FIX_FRC_SZ))
-
-// dfixed trabaja con el doble de precision de fixed
-#define DFIXED_MUL(A,B)            \
-    ((dfixed)(((dfixed)(A) * (dfixed)(B)) ))
-
-#define FIXED_TO_DFIXED(A)      \
-    ((dfixed)A << FIX_FRC_SZ)
-
-#define DFIXED_TO_FIXED(A)      \
-    ((dfixed)A >> FIX_FRC_SZ)
+  ((fixed)(((dfixed)(A) * (dfixed)(B)) >> FIX_FRC_SZ))
 
 #define FIXED_DIV(A,B)           \
-    ((fixed)(((dfixed)(A) << FIX_FRC_SZ) / (dfixed)(B)))
+  ((fixed)(((dfixed)(A) << FIX_FRC_SZ) / (dfixed)(B)))
+
 
 //////////////////////////////////// Macros adicionales ////////////////////////////////////
 

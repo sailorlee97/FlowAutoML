@@ -85,32 +85,44 @@
         return (l);
     }
 
+    // Devuelve el valor de exp(a)
     fixed fixed_exp(fixed fp){
-        #define MAX_EXP_IT 14
+        fixed xabs, k, z, R, xp;
+        const fixed LN2 = FLOAT_TO_FIXED(0.69314718055994530942);
+        const fixed LN2_INV = FLOAT_TO_FIXED(1.4426950408889634074);
+        const fixed EXP_P[5] = {
+            FLOAT_TO_FIXED(1.66666666666666019037e-01),
+            FLOAT_TO_FIXED(-2.77777777770155933842e-03),
+            FLOAT_TO_FIXED(6.61375632143793436117e-05),
+            FLOAT_TO_FIXED(-1.65339022054652515390e-06),
+            FLOAT_TO_FIXED(4.13813679705723846039e-08),
+        };
 
-        if(fp == FIX_ZERO) return FIX_ONE;
-        if(fp == FIX_ONE) return FIX_E;
-        if(fp >= FIX_EXP_MAX) return FIX_MAX;
-        if(fp <= -FIX_EXP_MAX) return FIX_ZERO;
+        if (fp == 0)
+            return (FIX_ONE);
+        xabs = FIXED_ABS(fp);
+        k = FIXED_MUL(xabs, LN2_INV);
+        k += FIX_HALF;
+        k &= ~FIX_FRC_MSK;
+        if (fp < 0)
+            k = -k;
+        if (k >= FIX_SIZE || k <= -FIX_SIZE)
+            return FIX_ZERO;
+        fp -= FIXED_MUL(k, LN2);
+        z = FIXED_MUL(fp, fp);
+        /* Taylor */
+        R = FIX_TWO +
+            FIXED_MUL(z, EXP_P[0] + FIXED_MUL(z, EXP_P[1] +
+            FIXED_MUL(z, EXP_P[2] + FIXED_MUL(z, EXP_P[3] +
+            FIXED_MUL(z, EXP_P[4])))));
+        xp = FIX_ONE + FIXED_DIV(FIXED_MUL(fp, FIX_TWO), R - fp);
+        if (k < 0)
+            k = -k;
 
-        uint8_t i;
-        uint8_t neg = (fp < FIX_ZERO);
-        if (neg) fp = -fp;
+        k = FIX_ONE << (k >> FIX_FRC_SZ);
 
-        fixed result = fp + FIX_ONE;
-        fixed term = fp;
-        for (i = 2; i < MAX_EXP_IT; i++){
-            term = FIXED_MUL(term, FIXED_DIV(fp, INT_TO_FIXED(i)));
-            result += term;
-            if (term < 20)
-                break;
-        }
-
-        if (neg) result = FIXED_DIV(FIX_ONE, result);
-
-        return result;
+        return (FIXED_MUL(k, xp));
     }
-
 
 
     // Devuelve x * 2^exp

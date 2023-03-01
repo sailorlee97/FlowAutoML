@@ -7,17 +7,14 @@
 
 #include <stdint.h>
 #include <math.h>
-#include "fixed.h"
-
 #include <stdlib.h>
 
 
-#define PRINT_RESULTS 0
 
 /* STRUCTURE DEFINITION */
 
 /*
- * Structure that stores an array of fixed data (fixed * data) in vector form.
+ * Structure that stores an array of float data (float * data) in vector form.
  * Specifies the number of channels, the width and the height of the array.
  */
 
@@ -25,31 +22,31 @@ typedef struct{
     uint16_t channels;
     uint16_t width;
     uint16_t height;
-    fixed  * data;
+    float  * data;
 }data3d_t;
 
 typedef struct{
     uint16_t width;
     uint16_t height;
-    fixed  * data;
+    float  * data;
 }data2d_t;
 
 typedef struct{
     uint32_t length;
-    fixed  * data;
+    float  * data;
 }data1d_t;
 
 
 /*
  * Structure that stores the weights of a filter.
- Specifies the number of channels (uint16_t channels), their size (uint16_t kernel_size), the weights (fixed * weights) and the bias (fixed bias),
- * the weights (fixed * weights) and the bias (fixed bias).
+ Specifies the number of channels (uint16_t channels), their size (uint16_t kernel_size), the weights (float * weights) and the bias (float bias),
+ * the weights (float * weights) and the bias (float bias).
  */
 typedef struct{
     uint16_t channels;
     uint16_t kernel_size;
-    const fixed  * weights;
-    fixed  bias; 
+    const float  * weights;
+    float  bias; 
 }filter_t;
 
 /*
@@ -78,8 +75,8 @@ typedef struct{
  * Specifies the weights of the neuron as a vector (fixed * weights) and the bias (fixed bias).
  */
 typedef struct{
-    const fixed  * weights;
-    fixed  bias;
+    const float  * weights;
+    float  bias;
 }neuron_t;
 
 /*
@@ -111,8 +108,8 @@ typedef struct{
  */
 
 typedef struct{
-    const fixed *sub_val;
-    const fixed *inv_div_val;
+    const float *sub_val;
+    const float *inv_div_val;
 } normalization_layer_t;
 
 
@@ -123,10 +120,10 @@ typedef struct{
  */
 typedef struct {
     uint32_t length;
-    const fixed *beta;
-    // const fixed *gamma; //  removed due to optimization included in moving_inv_std_dev
-    const fixed *moving_mean;
-    const fixed *moving_inv_std_dev; // = gamma / sqrt(moving_variance + epsilon)
+    const float *beta;
+    // const float *gamma; //  removed due to optimization included in moving_inv_std_dev
+    const float *moving_mean;
+    const float *moving_inv_std_dev; // = gamma / sqrt(moving_variance + epsilon)
 } batch_normalization_layer_t;
 
 
@@ -214,17 +211,17 @@ uint32_t argmax(data1d_t data);
 /***************************************************************************************************************************/
 /* Activation functions/layers */
 
-void softmax_activation(fixed *data, uint32_t length);
+void softmax_activation(float *data, uint32_t length);
 
-void relu_activation(fixed *data, uint32_t length);
+void relu_activation(float *data, uint32_t length);
 
-void leakyrelu_activation(fixed *data, uint32_t length, fixed alpha);
+void leakyrelu_activation(float *data, uint32_t length, float alpha);
 
-void tanh_activation(fixed *data, uint32_t length);
+void tanh_activation(float *data, uint32_t length);
 
-void sigmoid_activation(fixed *data, uint32_t length);
+void sigmoid_activation(float *data, uint32_t length);
 
-void softsign_activation(fixed *data, uint32_t length);
+void softsign_activation(float *data, uint32_t length);
 
 
 
@@ -253,7 +250,7 @@ void normalization2(normalization_layer_t s, data1d_t input, data1d_t * output);
 #define max_abs_norm_layer(norm, input, output) normalization2(norm, input, output)
 
 
-void batch_normalization_layer(batch_normalization_layer_t norm, uint32_t length, fixed *data);
+void batch_normalization_layer(batch_normalization_layer_t norm, uint32_t length, float *data);
 
 
 void batch_normalization3d_layer(batch_normalization_layer_t layer, data3d_t *data);
