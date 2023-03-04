@@ -97,8 +97,8 @@ class autotask():
 
         # propress labels
         newlabels, res = self._propress_label(labels)
-        # le = LabelEncoder()
-        # newlabels = le.fit_transform(labels)
+        le = LabelEncoder()
+        newlabels = le.fit_transform(labels)
 
         # process numic values
         X = self._process_num(dataArray)
@@ -147,20 +147,28 @@ class autotask():
         # print("特征重要性：", sf_model.estimator_.feature_importances_)
         # a1 = x_data.columns[sf_model.get_support()]
         # a2 = sf_model.estimator_.feature_importances_
-        df = pd.read_csv('./csv_data/dataframe10self.csv')
-        dataframe = df.copy()
+        df = pd.read_csv('./csv_data/total.csv')
+        dataframe0 = df.copy()
 
-        dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
-        data = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
-        labels = data.pop('appname')
+        dataframe = dataframe0.replace([np.inf, -np.inf], np.nan).dropna()
+        dataframe_del = dataframe.drop(['port1','port2','startSec','startNSec','endSec','endNSec'],axis=1)
+        labels = dataframe_del.pop('appname')
         # propress labels
         le = LabelEncoder()
         newlabels = le.fit_transform(labels)
+        newdata = pd.get_dummies(dataframe_del)
+
+        # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
+        # data = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
+        # labels = data.pop('appname')
+        # propress labels
+        # le = LabelEncoder()
+        # newlabels = le.fit_transform(labels)
         # newlabels = ._propress_label(labels)
 
         sf = selectfeature()
-        secorndfeatrues = sf.search_corrlate_features(data, newlabels)
-        newdataframe = data[secorndfeatrues]
+        secorndfeatrues = sf.search_corrlate_features(newdata, newlabels)
+        newdataframe = newdata[secorndfeatrues]
         feauturesimportance = sf.treemodel(newdataframe, newlabels)
         # print(list(feauturesimportance[:36]['Features']))
 
@@ -209,9 +217,9 @@ class autotask():
         """
         # appname=["aiqiyi","bilibili","douyin","hepingjingying","QQyinyue","tengxunhuiyi","wangzherongyao","yuanshen","zhanshuangpamishi","zuoyebang"]
 
-        if os.path.exists('./csv_data/dataframe10.csv'):
+        if os.path.exists('./csv_data/total.csv'):
             ## if exist train data, read data
-            dataframe0 = pd.read_csv('./csv_data/dataframe10self.csv')
+            dataframe0 = pd.read_csv('./csv_data/total.csv')
         else:
             ## read data from sql
             time_i = time.time()
@@ -229,6 +237,16 @@ class autotask():
         #      'Down/Up_Ratio', 'ECE_Flag_Cnt', 'appname']]
         # # print(dataframe0.columns)
         # 36个特征
+        dataframe_del = dataframe0.drop(['port1', 'port2', 'startSec', 'startNSec', 'endSec', 'endNSec'], axis=1)
+        dataframe = dataframe_del.replace([np.inf, -np.inf], np.nan).dropna()
+        labels = dataframe.pop('appname')
+        newlabel = labels.to_frame('appname')
+        # propress labels
+        # le = LabelEncoder()
+        # newlabels = le.fit_transform(labels)
+        newdata = pd.get_dummies(dataframe)
+
+
         featurelist = self._select_features()
 
         f = open('./log/features', 'a')
@@ -247,10 +265,10 @@ class autotask():
         #                         "appname"
         #                         ]]
         # delete some samples which contain inf and nan
-        featurelist.append('appname')
-        dataframe = dataframe0[featurelist]
-        print(dataframe.shape)
-        newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
+        # featurelist.append('appname')
+        dataframe1 = newdata[featurelist]
+        print(dataframe1.shape)
+        # newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
         # newdf = dataframe[np.isinf(dataframe.T).all()]
 
         # dataframe = dataframe0[[
@@ -285,8 +303,8 @@ class autotask():
         # 'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
         # 'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
         # 'appname']]
-
-        train, test = train_test_split(newdf, test_size=0.2)
+        dataframe3 = pd.concat([dataframe1,labels],axis=1)
+        train, test = train_test_split(dataframe3, test_size=0.2)
         train, val = train_test_split(train, test_size=0.2)
 
         train_ds, res_tr, truelabels_tr = self.df_to_dataset(train, batch_size=self.opt.batch_size)
@@ -401,7 +419,7 @@ class autotask():
                     OUTPUT_FOLDER='outputs/',
                     PROJECT_NAME='flow10model',
                     MODEL_FILE='savedmodels/my_model.h5',
-                    Test_Example='.\csv_data\dataframe10.csv',
+                    Test_Example='./csv_data/total.csv',
                     Feature_List=alist
                 )
                 embediatest.output_model_c()
