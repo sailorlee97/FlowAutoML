@@ -83,7 +83,7 @@ class autotask():
 
     def df_to_dataset(self, dataframe, shuffle=True, batch_size=32):
         """
-        add
+        Since the data has been normalized in the edge router, there is no need to do normalization.
 
         :param dataframe:
         :param shuffle:
@@ -101,9 +101,10 @@ class autotask():
         newlabels = le.fit_transform(labels)
 
         # process numic values
-        X = self._process_num(dataArray)
+        # X = self._process_num(dataArray)
+        # Since the data has been normalized in the edge router, there is no need to do normalization.
 
-        X = np.expand_dims(X.astype(float), axis=2)
+        X = np.expand_dims(dataArray.astype(float), axis=2)
 
         lenx = len(X)
         newx = X.reshape((lenx, 6, 6, 1))
@@ -135,7 +136,7 @@ class autotask():
 
         return normalizer
 
-    def _select_features(self):
+    def _select_features(self,path):
         '''
 
         :return: list
@@ -147,16 +148,16 @@ class autotask():
         # print("特征重要性：", sf_model.estimator_.feature_importances_)
         # a1 = x_data.columns[sf_model.get_support()]
         # a2 = sf_model.estimator_.feature_importances_
-        df = pd.read_csv('./csv_data/total.csv')
-        dataframe0 = df.copy()
-
+        df = pd.read_csv(path)
+        dataframe_pd = df.copy()
+        dataframe0 = dataframe_pd.drop(dataframe_pd.columns[0], axis=1)
         dataframe = dataframe0.replace([np.inf, -np.inf], np.nan).dropna()
-        dataframe_del = dataframe.drop(['port1','port2','startSec','startNSec','endSec','endNSec'],axis=1)
-        labels = dataframe_del.pop('appname')
+        # dataframe_del = dataframe.drop(['port1','port2','startSec','startNSec','endSec','endNSec'],axis=1)
+        labels = dataframe.pop('appname')
         # propress labels
         le = LabelEncoder()
         newlabels = le.fit_transform(labels)
-        newdata = pd.get_dummies(dataframe_del)
+        # newdata = pd.get_dummies(dataframe_del)
 
         # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
         # data = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
@@ -167,12 +168,13 @@ class autotask():
         # newlabels = ._propress_label(labels)
 
         sf = selectfeature()
-        secorndfeatrues = sf.search_corrlate_features(newdata, newlabels)
-        newdataframe = newdata[secorndfeatrues]
+        secorndfeatrues = sf.search_corrlate_features(dataframe, newlabels)
+        newdataframe = dataframe[secorndfeatrues]
         feauturesimportance = sf.treemodel(newdataframe, newlabels)
-        # print(list(feauturesimportance[:36]['Features']))
+        features = list(feauturesimportance[:36]['Features'])
+        features.append('appname')
 
-        return list(feauturesimportance[:36]['Features'])
+        return features
 
     def obtaindata(self):
         '''
@@ -206,7 +208,7 @@ class autotask():
         # data = data.drop(labels=['num'], axis=1)
         return X, x_test, y_train, y_test
 
-    def _obtain_data_train_test(self):
+    def _obtain_data_train_test(self,path = './csv_data/dataframe11.csv'):
         """
         get dataset from mysql
         the get train, val, and test dateset
@@ -217,94 +219,51 @@ class autotask():
         """
         # appname=["aiqiyi","bilibili","douyin","hepingjingying","QQyinyue","tengxunhuiyi","wangzherongyao","yuanshen","zhanshuangpamishi","zuoyebang"]
 
-        if os.path.exists('./csv_data/total.csv'):
+        if os.path.exists(path):
             ## if exist train data, read data
-            dataframe0 = pd.read_csv('./csv_data/total.csv')
+            dataframe_pd = pd.read_csv(path)
+            dataframe0 = dataframe_pd.drop(dataframe_pd.columns[0],axis=1)
         else:
             ## read data from sql
             time_i = time.time()
-            dataframe0 = self.mysqldata.total_get_data(limitnum=10000)
+            dataframe0 = self.mysqldata.total_get_data()
             time_o = time.time()
             end_time = time_o - time_i
             print("get data from mysql:", end_time)
-            dataframe0.to_csv('./csv_data/dataframe.csv')
-        # 25个特征
-        # dataframe = dataframe0[
-        #     ['ACK_Flag_Cnt', 'Active_Max', 'Active_Mean', 'Active_Min', 'Active_Std', 'Bwd_Blk_Rate_Avg',
-        #      'Bwd_Byts/b_Avg', 'Bwd_Header_Len', 'Bwd_IAT_Max', 'Bwd_IAT_Mean', 'Bwd_IAT_Min', 'Bwd_IAT_Std',
-        #      'Bwd_IAT_Tot', 'Bwd_PSH_Flags', 'Bwd_Pkt_Len_Max', 'Bwd_Pkt_Len_Mean', 'Bwd_Pkt_Len_Min',
-        #      'Bwd_Pkt_Len_Std', 'Bwd_Pkts/b_Avg', 'Bwd_Pkts/s', 'Bwd_Seg_Size_Avg', 'Bwd_URG_Flags', 'CWE_Flag_Count',
-        #      'Down/Up_Ratio', 'ECE_Flag_Cnt', 'appname']]
+            dataframe0.to_csv(path)
         # # print(dataframe0.columns)
         # 36个特征
-        dataframe_del = dataframe0.drop(['port1', 'port2', 'startSec', 'startNSec', 'endSec', 'endNSec'], axis=1)
-        dataframe = dataframe_del.replace([np.inf, -np.inf], np.nan).dropna()
-        labels = dataframe.pop('appname')
-        newlabel = labels.to_frame('appname')
+        # dataframe_del = dataframe0.drop(['port1', 'port2', 'startSec', 'startNSec', 'endSec', 'endNSec'], axis=1)
+        dataframe = dataframe0.replace([np.inf, -np.inf], np.nan).dropna()
+        # labels = dataframe.pop('appname')
+        # newlabel = labels.to_frame('appname')
         # propress labels
         # le = LabelEncoder()
         # newlabels = le.fit_transform(labels)
-        newdata = pd.get_dummies(dataframe)
+        # newdata = pd.get_dummies(dataframe)
+        featurelist = []
+        if os.path.exists('./log/features'):
 
+            for line in open("./log/features"):
+                line = line.strip('\n')
+                featurelist.append(line)
+        else:
 
-        featurelist = self._select_features()
+            featurelist = self._select_features(path)
 
-        f = open('./log/features', 'a')
-        for i in featurelist:
-            f.write(i)
-            f.write('\n')
-        f.close()
-        # dataframe = dataframe0[["Flow_Duration","TotLen_Fwd_Pkts","TotLen_Bwd_Pkts","Fwd_Header_Len","Bwd_Header_Len","Flow_Pkts/s",
-        #                         "Fwd_Pkts/s","Bwd_Pkts/s","Pkt_Len_Min","Pkt_Len_Max","Pkt_Len_Mean","Pkt_Len_Std",
-        #                         "Pkt_Len_Var","FIN_Flag_Cnt","SYN_Flag_Cnt","RST_Flag_Cnt", "RST_Flag_Cnt","PSH_Flag_Cnt",
-        #                         "ACK_Flag_Cnt","URG_Flag_Cnt","CWE_Flag_Count","ECE_Flag_Cnt","Init_Fwd_Win_Byts","Init_Bwd_Win_Byts",
-        #                         "Fwd_Pkt_Len_Max","Fwd_Pkt_Len_Mean","Fwd_Pkt_Len_Std","Bwd_Pkt_Len_Max","Bwd_Pkt_Len_Mean","Bwd_Pkt_Len_Std",
-        #                         "Flow_Byts/s","Down/Up_Ratio","Flow_IAT_Mean","Flow_IAT_Max","Flow_IAT_Min","Fwd_IAT_Mean",
-        #                         "Fwd_IAT_Max","Fwd_IAT_Min","Fwd_IAT_Tot","Bwd_IAT_Tot","Bwd_IAT_Mean","Bwd_IAT_Max",
-        #                         "Bwd_IAT_Min","Flow_IAT_Std","Subflow_Fwd_Byts","Subflow_Bwd_Byts","Fwd_Seg_Size_Avg","Bwd_Seg_Size_Avg",
-        #                         "appname"
-        #                         ]]
-        # delete some samples which contain inf and nan
-        # featurelist.append('appname')
-        dataframe1 = newdata[featurelist]
+            f = open('./log/features', 'a')
+            for i in featurelist:
+                f.write(i)
+                f.write('\n')
+            f.close()
+
+        dataframe1 = dataframe[featurelist]
         print(dataframe1.shape)
         # newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
         # newdf = dataframe[np.isinf(dataframe.T).all()]
 
-        # dataframe = dataframe0[[
-        # 'Pkt_Len_Std', 'Pkt_Len_Var', 'FIN_Flag_Cnt', 'SYN_Flag_Cnt',
-        # 'RST_Flag_Cnt', 'PSH_Flag_Cnt', 'ACK_Flag_Cnt', 'URG_Flag_Cnt',
-        # 'CWE_Flag_Count', 'ECE_Flag_Cnt', 'Down/Up_Ratio', 'Pkt_Size_Avg',
-        # 'Fwd_Seg_Size_Avg', 'Bwd_Seg_Size_Avg', 'Fwd_Byts/b_Avg',
-        # 'Fwd_Pkts/b_Avg', 'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg',
-        # 'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg', 'Subflow_Fwd_Pkts',
-        # 'Subflow_Fwd_Byts', 'Subflow_Bwd_Pkts', 'Subflow_Bwd_Byts',
-        # 'Init_Fwd_Win_Byts', 'Init_Bwd_Win_Byts', 'Fwd_Act_Data_Pkts',
-        # 'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
-        # 'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
-        # 'appname']]
-        # 64个特征
-        #  dataframe = dataframe0[[
-        # 'Bwd_Pkt_Len_Std', 'Flow_Byts/s', 'Flow_Pkts/s', 'Flow_IAT_Mean',
-        # 'Flow_IAT_Std', 'Flow_IAT_Max', 'Flow_IAT_Min', 'Fwd_IAT_Tot',
-        # 'Fwd_IAT_Mean', 'Fwd_IAT_Std', 'Fwd_IAT_Max', 'Fwd_IAT_Min',
-        # 'Bwd_IAT_Tot', 'Bwd_IAT_Mean', 'Bwd_IAT_Std', 'Bwd_IAT_Max',
-        # 'Bwd_IAT_Min', 'Fwd_PSH_Flags', 'Bwd_PSH_Flags', 'Fwd_URG_Flags',
-        # 'Bwd_URG_Flags', 'Fwd_Header_Len', 'Bwd_Header_Len', 'Fwd_Pkts/s',
-        # 'Bwd_Pkts/s', 'Pkt_Len_Min', 'Pkt_Len_Max', 'Pkt_Len_Mean',
-        # 'Pkt_Len_Std', 'Pkt_Len_Var', 'FIN_Flag_Cnt', 'SYN_Flag_Cnt',
-        # 'RST_Flag_Cnt', 'PSH_Flag_Cnt', 'ACK_Flag_Cnt', 'URG_Flag_Cnt',
-        # 'CWE_Flag_Count', 'ECE_Flag_Cnt', 'Down/Up_Ratio', 'Pkt_Size_Avg',
-        # 'Fwd_Seg_Size_Avg', 'Bwd_Seg_Size_Avg', 'Fwd_Byts/b_Avg',
-        # 'Fwd_Pkts/b_Avg', 'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg',
-        # 'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg', 'Subflow_Fwd_Pkts',
-        # 'Subflow_Fwd_Byts', 'Subflow_Bwd_Pkts', 'Subflow_Bwd_Byts',
-        # 'Init_Fwd_Win_Byts', 'Init_Bwd_Win_Byts', 'Fwd_Act_Data_Pkts',
-        # 'Fwd_Seg_Size_Min', 'Active_Mean', 'Active_Std', 'Active_Max',
-        # 'Active_Min', 'Idle_Mean', 'Idle_Std', 'Idle_Max', 'Idle_Min',
-        # 'appname']]
-        dataframe3 = pd.concat([dataframe1,labels],axis=1)
-        train, test = train_test_split(dataframe3, test_size=0.2)
+        # dataframe3 = pd.concat([dataframe1,labels],axis=1)
+        train, test = train_test_split(dataframe1, test_size=0.2)
         train, val = train_test_split(train, test_size=0.2)
 
         train_ds, res_tr, truelabels_tr = self.df_to_dataset(train, batch_size=self.opt.batch_size)
@@ -413,13 +372,13 @@ class autotask():
             else:
                 raise Exception('dont exist folder!')
 
-            alist.append('appname')
+            # alist.append('appname')
             try:
                 embediatest = embediaModel(
                     OUTPUT_FOLDER='outputs/',
                     PROJECT_NAME='flow10model',
                     MODEL_FILE='savedmodels/my_model.h5',
-                    Test_Example='./csv_data/total.csv',
+                    Test_Example='./csv_data/dataframe11.csv',
                     Feature_List=alist
                 )
                 embediatest.output_model_c()
