@@ -67,13 +67,14 @@ class ConnectMysql():
         return X_train, X_test, y_train, y_test
 
     def total_get_data(self,app=("哈利波特魔法觉醒", "狂野飙车9竞速传奇", "欢乐麻将","狼人杀","使命召唤手游","QQ飞车","QQ炫舞手游","优酷视频","芒果TV","央视影音","QQ音乐"),
-                       limitnum='*', featurebase='AP_flowfeature'):
-        # df = pd.DataFrame()
-        # for i in app:
-        #     sql = "select {} from AP_flowfeature where appname = {}" \
-        #           " order by `Active_Min` limit {}".format(feature, "'{}'".format(i), limitnum)
-        #     appfile = pd.read_sql(sql, con=self.conn)
-        #     df = df.append(appfile)
+                    featurebase='AP_flowfeature'):
+        '''
+        select app flows and return flows
+
+        :param app:
+        :param featurebase:
+        :return: dataframe
+        '''
         sql = 'select * from {} WHERE appname in {}'.format(featurebase,app)
         print(sql)
         df = pd.read_sql(sql, con=self.conn)
