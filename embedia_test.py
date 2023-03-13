@@ -41,9 +41,9 @@ class embediaModel():
         le = LabelEncoder()
         label = le.fit_transform(labels)
         dataArray = dataframe.values
-        mm = MinMaxScaler()
-        X = mm.fit_transform(dataArray)
-        X = np.expand_dims(X.astype(float), axis=2)
+        # mm = MinMaxScaler()
+        # X = mm.fit_transform(dataArray)
+        X = np.expand_dims(dataArray.astype(float), axis=2)
         lenx = len(X)
         newx = X.reshape((lenx, 6, 6, 1))
         x_train, x_test, y_train, y_test = train_test_split(newx, label, test_size=0.1, random_state=0)
@@ -57,7 +57,7 @@ class embediaModel():
 
         options = ProjectOptions()
         options.project_type = ProjectType.C
-        options.data_type = ModelDataType.FIXED32
+        options.data_type = ModelDataType.FLOAT
         options.debug_mode = DebugMode.DISCARD
         options.example_data = sample
         options.example_comment = comment
