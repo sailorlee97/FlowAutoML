@@ -70,7 +70,7 @@ class autonetworks():
 #     model.add(Flatten())
 
 #  输入6*6*1
-    model.add(Conv2D(filters=32, kernel_size=(2,2), activation='relu', input_shape=[6,6,1]))
+    model.add(Conv2D(filters=32, kernel_size=(2,2), activation='relu', input_shape=[7,7,1]))
     model.add(Conv2D(filters=64, kernel_size=(2,2), activation='relu'))
     model.add(MaxPool2D(pool_size=(2,2)))
     # model.add(Conv2D(64, kernel_size=(2,2),activation='relu'))

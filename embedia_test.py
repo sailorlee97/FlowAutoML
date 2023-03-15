@@ -45,7 +45,7 @@ class embediaModel():
         # X = mm.fit_transform(dataArray)
         X = np.expand_dims(dataArray.astype(float), axis=2)
         lenx = len(X)
-        newx = X.reshape((lenx, 6, 6, 1))
+        newx = X.reshape((lenx, 7, 7, 1))
         x_train, x_test, y_train, y_test = train_test_split(newx, label, test_size=0.1, random_state=0)
         model = tf.keras.models.load_model(self.MODEL_FILE)
 

@@ -107,7 +107,7 @@ class autotask():
         X = np.expand_dims(dataArray.astype(float), axis=2)
 
         lenx = len(X)
-        newx = X.reshape((lenx, 6, 6, 1))
+        newx = X.reshape((lenx, 7, 7, 1))
         print(newx.shape)
         y_train = keras.utils.to_categorical(newlabels, self.opt.nclass)
 
@@ -171,7 +171,7 @@ class autotask():
         secorndfeatrues = sf.search_corrlate_features(dataframe, newlabels)
         newdataframe = dataframe[secorndfeatrues]
         feauturesimportance = sf.treemodel(newdataframe, newlabels)
-        features = list(feauturesimportance[:36]['Features'])
+        features = list(feauturesimportance[:49]['Features'])
         features.append('appname')
 
         return features
@@ -286,7 +286,7 @@ class autotask():
         # for header in newcolumns:
         #     feature_columns.append(feature_column.numeric_column(header))
         # feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
-        cnnmodel = autonetworks(self.opt.nclass, 36)
+        cnnmodel = autonetworks(self.opt.nclass, 49)
         model = cnnmodel.buildmodels()
         model.fit(train_ds,
                   validation_data=val_ds,
