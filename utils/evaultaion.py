@@ -18,7 +18,7 @@ import pandas as pd
 
 class Eva():
 
-    def __init__(self,parm):
+    def __init__(self,parm = None):
         self.parm = parm
 
     def evaluate(self,labels, scores):

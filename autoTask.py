@@ -16,7 +16,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-
+import keras.backend as K
 from embedia_test import embediaModel
 from utils.plot_cm import plot_conf
 from utils.evaultaion import Eva
@@ -297,7 +297,7 @@ class autotask():
         predict_label = np.argmax(prediction, axis=1)
         plot_conf(predict_label, truelabels_te, reskey)
 
-        model.save('./savedmodels/my_model.h5')
+        model.save('./savedmodels/model_0315_11_49.h5')
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
         return auc
@@ -376,7 +376,7 @@ class autotask():
             try:
                 embediatest = embediaModel(
                     OUTPUT_FOLDER='outputs/',
-                    PROJECT_NAME='flow10model',
+                    PROJECT_NAME='model_0315_11_49',
                     MODEL_FILE='savedmodels/my_model.h5',
                     Test_Example='./csv_data/dataframe11.csv',
                     Feature_List=alist
