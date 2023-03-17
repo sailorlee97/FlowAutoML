@@ -7,23 +7,16 @@
 @FileName: autoTask.py
 @Software: PyCharm
 """
-import itertools
-
 from keras.layers import Normalization
-from keras.wrappers.scikit_learn import KerasClassifier
-from matplotlib import pyplot as plt
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-import keras.backend as K
 from embedia_test import embediaModel
 from utils.plot_cm import plot_conf
-from utils.evaultaion import Eva
 from models.autonetworks import autonetworks
 from utils.csvdb import ConnectMysql
 from tensorflow import keras
-from tensorflow.python.keras.models import load_model
 from sklearn.metrics import f1_score
 from utils.selectfeatures import selectfeature
 import pandas as pd
@@ -157,15 +150,6 @@ class autotask():
         # propress labels
         le = LabelEncoder()
         newlabels = le.fit_transform(labels)
-        # newdata = pd.get_dummies(dataframe_del)
-
-        # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
-        # data = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
-        # labels = data.pop('appname')
-        # propress labels
-        # le = LabelEncoder()
-        # newlabels = le.fit_transform(labels)
-        # newlabels = ._propress_label(labels)
 
         sf = selectfeature()
         secorndfeatrues = sf.search_corrlate_features(dataframe, newlabels)
@@ -208,7 +192,7 @@ class autotask():
         # data = data.drop(labels=['num'], axis=1)
         return X, x_test, y_train, y_test
 
-    def _obtain_data_train_test(self,path = './csv_data/dataframe11.csv'):
+    def _obtain_data_train_test(self,path = './csv_data/dataframe18.csv'):
         """
         get dataset from mysql
         the get train, val, and test dateset
@@ -242,6 +226,7 @@ class autotask():
         # newlabels = le.fit_transform(labels)
         # newdata = pd.get_dummies(dataframe)
         featurelist = []
+        time_sf = 0
         if os.path.exists('./log/features'):
 
             for line in open("./log/features"):
@@ -249,7 +234,13 @@ class autotask():
                 featurelist.append(line)
         else:
 
+            time_feature_s = time.time()
+
             featurelist = self._select_features(path)
+
+            time_feature_e = time.time()
+            time_sf += time_feature_e-time_feature_s
+            print('time of select features: {} min'.format(time_sf/60))
 
             f = open('./log/features', 'a')
             for i in featurelist:
@@ -273,31 +264,26 @@ class autotask():
         reskey = list(res_te.keys())
         print(reskey)
 
-        # all_inputs = []
-        # encoded_features = []
-        #
-        # columns = dataframe.columns
-        # newcolumns = columns[0:len(columns) - 1]
-        #
-        # # Numeric features.
-        # feature_columns = []
-        #
-        # # numeric cols
-        # for header in newcolumns:
-        #     feature_columns.append(feature_column.numeric_column(header))
-        # feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
         cnnmodel = autonetworks(self.opt.nclass, 49)
         model = cnnmodel.buildmodels()
+
+        time_train_s = time.time()
         model.fit(train_ds,
                   validation_data=val_ds,
                   epochs=self.opt.epochs)
         loss, accuracy, precision, recall, auc = model.evaluate(test_ds)
+        time_train_e = time.time()
+        train_time = time_train_e-time_train_s
+        print('time of training: {} min'.format(train_time/60))
+
+        time_total = train_time+time_sf
+        print('total_time: {} min'.format(time_total/60))
 
         prediction = model.predict(test_ds, verbose=1)
         predict_label = np.argmax(prediction, axis=1)
         plot_conf(predict_label, truelabels_te, reskey)
 
-        model.save('./savedmodels/model_0315_11_49.h5')
+        model.save('./savedmodels/model_0316_18_49.h5')
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
         return auc
@@ -332,8 +318,6 @@ class autotask():
         print("train time:", train_time)
         y_pred = model.predict(y_test)
         print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
-        # f1 = f1_score(y_test.argmax(-1), y_pred.argmax(-1), average='weighted')
-        # return f1
 
     #    @run_every(30,'day')
 
@@ -343,23 +327,6 @@ class autotask():
 
             if not os.path.exists('./savedmodels/my_model'):
                 auc = self._obtain_data_train_test()
-
-            # ## 设计获取参数进行下发
-            # loaded_keras_model = load_model("./savedmodels/my_model")
-            # keras_to_tflite_converter = tf.lite.TFLiteConverter.from_keras_model(loaded_keras_model)
-            # keras_to_tflite_converter.optimizations = [
-            #     tf.lite.Optimize.OPTIMIZE_FOR_SIZE
-            # ]
-            # keras_to_tflite_converter.target_spec.supported_ops = [
-            #     tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
-            #     tf.lite.OpsSet.SELECT_TF_OPS  # enable TensorFlow ops.
-            # ]
-            # keras_tflite = keras_to_tflite_converter.convert()
-            #
-            # if not os.path.exists('./tflite_models'):
-            #     os.mkdir('./tflite_models')
-            # with open('./tflite_models/keras_tflite','wb') as f:
-            #     f.write(keras_tflite)
 
         elif (self.opt.isInitialization == 'no'):
 
@@ -376,9 +343,9 @@ class autotask():
             try:
                 embediatest = embediaModel(
                     OUTPUT_FOLDER='outputs/',
-                    PROJECT_NAME='model_0315_11_49',
-                    MODEL_FILE='savedmodels/my_model.h5',
-                    Test_Example='./csv_data/dataframe11.csv',
+                    PROJECT_NAME='model_0316_18_49',
+                    MODEL_FILE='savedmodels/model_0316_18_49.h5',
+                    Test_Example='./csv_data/dataframe18.csv',
                     Feature_List=alist
                 )
                 embediatest.output_model_c()
@@ -387,17 +354,3 @@ class autotask():
                 print("error:",e.__class__.__name__)
                 print(e)
                 print("Model embedding fails!")
-
-        #     pred,y= self.test_model(self.opt.label)
-        #     eva = Eva('recall')
-        #     rec = eva.calculate_recall(y,pred)
-        #     precision = eva.calculate_precision(y, pred)
-        #
-        #     print(rec)
-        #     if (rec<0.96 and precision<0.99):
-        #         # todo 增量在线学习
-        #         predictions = self.train_data()
-        #     else:
-        #         print("No need to retrain, continue to use the current model.")
-        # else:
-        #     raise
