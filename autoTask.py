@@ -51,6 +51,7 @@ class autotask():
 
         return newlabels, res
 
+    # alas
     def _process_num(self, num):
         """
             This estimator scales and translates each feature individually such
@@ -111,6 +112,7 @@ class autotask():
         ds = ds.prefetch(batch_size)
         return ds, res, newlabels
 
+    # alas
     def _get_normalization_layer(self, name, dataset):
         """
 
@@ -160,6 +162,7 @@ class autotask():
 
         return features
 
+    # alas
     def obtaindata(self):
         '''
 
@@ -192,7 +195,7 @@ class autotask():
         # data = data.drop(labels=['num'], axis=1)
         return X, x_test, y_train, y_test
 
-    def _obtain_data_train_test(self,path = './csv_data/dataframe18.csv'):
+    def _obtain_data_train_test(self,path = './csv_data/dataframe21.csv'):
         """
         get dataset from mysql
         the get train, val, and test dateset
@@ -210,7 +213,12 @@ class autotask():
         else:
             ## read data from sql
             time_i = time.time()
-            dataframe0 = self.mysqldata.total_get_data()
+            dataframe0 = self.mysqldata.total_get_data(app=('原神','和平精英','王者荣耀','抖音','bilibili',
+                                                            '爱奇艺','腾讯会议','作业帮','QQ音乐','优酷视频',
+                                                            '哈利波特魔法觉醒','央视影音','欢乐麻将','狼人杀',
+                                                            '芒果TV','虎牙直播','VR','狂野飙车9竞速传奇','英雄联盟手游',
+                                                            '快手','猿辅导'),
+                                                       featurebase= 'AP_flowfeature1')
             time_o = time.time()
             end_time = time_o - time_i
             print("get data from mysql:", end_time)
@@ -283,7 +291,7 @@ class autotask():
         predict_label = np.argmax(prediction, axis=1)
         plot_conf(predict_label, truelabels_te, reskey)
 
-        model.save('./savedmodels/model_0316_18_49.h5')
+        model.save('./savedmodels/model_0321_21_49.h5')
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
         return auc
@@ -343,9 +351,9 @@ class autotask():
             try:
                 embediatest = embediaModel(
                     OUTPUT_FOLDER='outputs/',
-                    PROJECT_NAME='model_0316_18_49',
-                    MODEL_FILE='savedmodels/model_0316_18_49.h5',
-                    Test_Example='./csv_data/dataframe18.csv',
+                    PROJECT_NAME='model_0321_21_49',
+                    MODEL_FILE='savedmodels/model_0321_21_49.h5',
+                    Test_Example='./csv_data/dataframe21.csv',
                     Feature_List=alist
                 )
                 embediatest.output_model_c()
