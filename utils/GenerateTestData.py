@@ -88,7 +88,29 @@ static {data_type} {var_name}[][49]= {{
 }},
 '''
         content = file_management.read_from_file(src_h).format(examples=examples)
+
         return content
+
+    def _generateLabel(self, src_folder, var_name, options):
+
+        ids = options.example_ids
+        src_h = os.path.join(src_folder, 'main/example_file.h')
+
+        if options.data_type == ModelDataType.FLOAT or options.data_type == ModelDataType.BINARY:
+            def conv1(s):
+                return s
+        else:
+            def conv1(s):
+                return f"FL2FX({s})"
+
+        labels = f'''
+        uint16_t {var_name}_id[] = {{ 
+        {self._data_to_array_str(ids,conv1)}
+}};
+'''
+        label = file_management.read_from_file(src_h).format(examples=labels)
+
+        return label
 
     def generate_data_c(self):
 
@@ -96,8 +118,8 @@ static {data_type} {var_name}[][49]= {{
         options = ProjectOptions()
         options.example_data = x
         options.data_type = 0
-        # options.example_ids = y
-        content = self._generateData('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
+        options.example_ids = y
+        content = self._generateLabel('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
         return  content
 
 
@@ -113,4 +135,4 @@ if __name__ == '__main__':
     nl= model_c_data('../csv_data/dataframe5.csv',featurelist)
     con = nl.generate_data_c()
     print(con)
-    file_management.save_to_file(os.path.join('../outputs/data_c', 'five_classes_c' + '.h'), con)
+    file_management.save_to_file(os.path.join('../outputs/data_c', 'five_label_c' + '.h'), con)
