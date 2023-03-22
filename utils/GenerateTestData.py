@@ -18,6 +18,9 @@ from embedia.utils import file_management
 
 
 class model_c_data():
+    '''
+
+    '''
 
     def __init__(self,data_path,feature_list):
         self.data_path = data_path
@@ -119,8 +122,9 @@ static {data_type} {var_name}[][49]= {{
         options.example_data = x
         options.data_type = 0
         options.example_ids = y
-        content = self._generateLabel('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
-        return  content
+        content = self._generateData('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
+        label = self._generateLabel('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
+        return  content,label
 
 
 # unit test
@@ -132,7 +136,8 @@ if __name__ == '__main__':
         for line in open("../log/features"):
             line = line.strip('\n')
             featurelist.append(line)
-    nl= model_c_data('../csv_data/dataframe5.csv',featurelist)
-    con = nl.generate_data_c()
-    print(con)
-    file_management.save_to_file(os.path.join('../outputs/data_c', 'five_label_c' + '.h'), con)
+    nl= model_c_data('../csv_data/dataframe21.csv',featurelist)
+    con,label = nl.generate_data_c()
+    # print(con)
+    file_management.save_to_file(os.path.join('../outputs/data_c', 'twenty_label_c' + '.h'), label)
+    file_management.save_to_file(os.path.join('../outputs/data_c', 'twenty_class_c' + '.h'), con)
