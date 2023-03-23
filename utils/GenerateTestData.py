@@ -15,6 +15,7 @@ from sklearn.preprocessing import LabelEncoder
 from embedia.model_generator.project_options import *
 from embedia.model_generator.generate_files import generate_examples
 from embedia.utils import file_management
+from options import Options
 
 
 class model_c_data():
@@ -49,17 +50,19 @@ class model_c_data():
 
         return labels, reskey
 
-    def _obtainData(self,sorted_labels):
+    def _obtainData(self,sorted_labels,num):
+        '''
+
+        :param sorted_labels: 需要传入的列表
+        :param num: 选取你需要生成的数据的数量
+        :return:生成的数据， 标签
+        '''
 
         df0 = pd.read_csv(self.data_path)
         df = df0[self.feature_list]
         newdf = self._delinf(df)
         dataframe = newdf.copy()
         labels = dataframe.pop('appname')
-        # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
-        #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
-        #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
-
         # propress labels
         newlabels, res = self._propress_label(labels, sorted_labels)
         dataArray = dataframe.values
@@ -68,8 +71,10 @@ class model_c_data():
         X = np.expand_dims(dataArray.astype(float), axis=2)
         lenx = len(X)
         newx = X.reshape((lenx, 7, 7, 1))
+        selectx = newx[:num,:,:,:]
+        selecty = newlabels[:num]
 
-        return newx,newlabels
+        return selectx,selecty
 
     def _data_to_array_str(self,data, macro_converter, clip=120):
         output = ''
@@ -118,7 +123,7 @@ static {data_type} {var_name}[][49]= {{
 
     def _generateLabel(self, src_folder, var_name, options):
 
-        ids = options.example_ids
+        ids = options.example_labels
         src_h = os.path.join(src_folder, 'main/example_file.h')
 
         if options.data_type == ModelDataType.FLOAT or options.data_type == ModelDataType.BINARY:
@@ -138,14 +143,21 @@ static {data_type} {var_name}[][49]= {{
         return label
 
     def generate_data_c(self,sorted_labels):
+        '''
+        (FLOAT, FIXED32, FIXED16, FIXED8, BINARY) = (0, 1, 2, 3, 4)
 
-        x,y = self._obtainData(sorted_labels)
+        :param sorted_labels:
+        :return:
+        '''
+
+        x,y = self._obtainData(sorted_labels,50)
         options = ProjectOptions()
         options.example_data = x
-        options.data_type = 0
-        options.example_ids = y
+        options.data_type = 1
+        options.example_labels = y
         content = self._generateData('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
         label = self._generateLabel('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
+
         return  content,label
 
 
@@ -153,16 +165,18 @@ static {data_type} {var_name}[][49]= {{
 if __name__ == '__main__':
     featurelist = []
     time_sf = 0
+    opt = Options().parse()
     if os.path.exists('../log/features'):
 
         for line in open("../log/features"):
             line = line.strip('\n')
             featurelist.append(line)
-    nl= model_c_data('../csv_data/dataframe21.csv',featurelist)
-    sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
-                     '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
-                     '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
-    con,label = nl.generate_data_c(sorted_labels)
+    else:
+        raise ('no folder!')
+
+    nl= model_c_data('../csv_data/dataframe%d.csv'%(opt.nclass),featurelist)
+
+    con,label = nl.generate_data_c(opt.apps)
     # print(con)
-    file_management.save_to_file(os.path.join('../outputs/data_c', 'twenty_label_c' + '.h'), label)
-    file_management.save_to_file(os.path.join('../outputs/data_c', 'twenty_class_c' + '.h'), con)
+    file_management.save_to_file(os.path.join('../outputs/data_c', 'five_label_c' + '.h'), label)
+    file_management.save_to_file(os.path.join('../outputs/data_c', 'five_class_c' + '.h'), con)
