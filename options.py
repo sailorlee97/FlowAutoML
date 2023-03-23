@@ -17,10 +17,10 @@ class Options():
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
         # training argument
-        self.parser.add_argument('--isInitialization', default='no',
+        self.parser.add_argument('--isInitialization', default='yes',
                                  help='yes - model train;no - we will load model trained.')
         self.parser.add_argument('--label', default='appname', help='data class labels.')
-        self.parser.add_argument('--epochs', default=200, help='number of epochs')
+        self.parser.add_argument('--epochs', default=120, help='number of epochs')
         self.parser.add_argument('--nclass', default=5, help='number class labels.')
         self.parser.add_argument('--batch_size', default=32, help='batch_size.')
 
