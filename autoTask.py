@@ -8,12 +8,15 @@
 @Software: PyCharm
 """
 from keras.layers import Normalization
-from sklearn.metrics import classification_report
+from keras.saving.save import load_model
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+
+
 from embedia_test import embediaModel
-from utils.plot_cm import plot_conf
+from utils.plot_cm import plot_conf, multi_roc
 from models.autonetworks import autonetworks
 from utils.csvdb import ConnectMysql
 from tensorflow import keras
@@ -32,7 +35,7 @@ class autotask():
         self.opt = opt
         self.mysqldata = ConnectMysql()
 
-    def _propress_label(self, labels):
+    def _propress_label(self, labels,sorted_labels):
         """Encode target labels with value between 0 and n_classes-1.
 
         This transformer should be used to encode target values, *i.e.* `y`, and
@@ -41,15 +44,23 @@ class autotask():
         :param data:
         :return: numic
         """
-        le = LabelEncoder()
-        newlabels = le.fit_transform(labels)
+        # le = LabelEncoder()
+        # newlabels = le.fit_transform(labels)
+        #
+        # res = {}
+        # for cl in le.classes_:
+        #     res.update({cl: le.transform([cl])[0]})
+        # print(res)
+        reskey = {}
+        for i in sorted_labels:
+            reskey.update({i: sorted_labels.index(i)})
+        print(reskey)
+        # map映射
+        labels = labels.map(reskey).values
 
-        res = {}
-        for cl in le.classes_:
-            res.update({cl: le.transform([cl])[0]})
-        print(res)
-
-        return newlabels, res
+        print(labels)
+        return labels, reskey
+        # return newlabels, res
 
     # alas
     def _process_num(self, num):
@@ -75,6 +86,122 @@ class autotask():
 
         return X
 
+    def test_single(self, model_path, csv_path, name, label_number, isall=False):
+        """
+          测试单类预测准确率
+          作者：张泽
+
+          Args:
+              model_path: 模型的存放路径
+              csv_path: 数据的存放路径
+              name：单类应用名称
+              label_number：此单类应用的编号
+              isold：csv文件中存放的是否是全部类数据
+
+          """
+        test_model = load_model(model_path)
+        # 输出模型结构
+        test_model.summary()
+        # 输出文件大小（以MB为单位）
+        file_size = os.path.getsize(model_path)
+        print(f"Model size: {file_size / (1024 * 1024)} MB")
+        # 获取特征
+        alist = []
+        if os.path.exists('./log/features'):
+
+            for line in open("./log/features"):
+                line = line.strip('\n')
+                alist.append(line)
+        else:
+            raise Exception('dont exist folder!')
+        print(alist)
+        # 提取数据
+        if isall:
+            df_old = pd.read_csv(csv_path)
+            df = df_old.loc[df_old['appname'] == name]
+        else:
+            df = pd.read_csv(csv_path)
+        # 数据处理
+        df = df[alist[:-1]]
+        dataframe = df.replace([np.inf, -np.inf], np.nan).dropna().copy()
+        dataArray = dataframe.values
+        X = np.expand_dims(dataArray.astype(float), axis=2)
+        lenx = len(X)
+        newx = X.reshape((lenx, 7, 7, 1))
+        true_label = np.ones(lenx) * label_number
+        # 预测
+        predict = test_model.predict(newx)
+        predict_label = predict.argmax(-1)
+        acc_x = accuracy_score(true_label, predict_label)
+        print(f'准确率：{acc_x}')
+
+    def test_all(self, model_path, csv_path, split_size=0):
+        """
+          全部类预测准确率
+            作者：张泽
+          Args:
+              model_path: 模型的存放路径
+              csv_path: 数据的存放路径
+             split_size：划分测试数据集大小
+
+          """
+        test_model = load_model(model_path)
+        # 输出模型结构
+        test_model.summary()
+        # 输出文件大小（以MB为单位）
+        file_size = os.path.getsize(model_path)
+        print(f"Model size: {file_size / (1024 * 1024)} MB")
+        # 获取特征
+        alist = []
+        if os.path.exists('./log/features'):
+
+            for line in open("./log/features"):
+                line = line.strip('\n')
+                alist.append(line)
+        else:
+            raise Exception('dont exist folder!')
+        print(alist)
+        # 提取数据
+        df = pd.read_csv(csv_path)
+        df = df[alist]
+        # 数据处理
+        dataframe = df.replace([np.inf, -np.inf], np.nan).dropna().copy()
+        if split_size:
+            train, test = train_test_split(dataframe, test_size=split_size)
+            test_dataframe, res_test, truelabel_test = self.df_to_dataset(test, shuffle=False,
+                                                                          batch_size=self.opt.batch_size)
+        else:
+            test_dataframe, res_test, truelabel_test = self.df_to_dataset(dataframe, shuffle=False,
+                                                                          batch_size=self.opt.batch_size)
+        res_test = list(res_test.keys())
+        # 评估和预测
+        loss, accuracy, precision, recall, auc = test_model.evaluate(test_dataframe)
+        print(accuracy, precision, recall, auc)
+        prediction = test_model.predict(test_dataframe, verbose=1)
+        predict_label = np.argmax(prediction, axis=1)
+        # 绘制混淆矩阵
+        plot_conf(predict_label, truelabel_test, res_test)
+        # 绘制ROC曲线
+        y_label = keras.utils.to_categorical(truelabel_test, self.opt.nclass)
+        multi_roc(y_label, prediction, res_test)
+        # 分析报告
+        report = classification_report(truelabel_test, predict_label, target_names=res_test)
+        print("classification_report:", classification_report(truelabel_test, predict_label, target_names=res_test))
+
+        with open("report.txt", "w") as f:
+            f.write(report)
+        # 手动计算准确率
+        count = 0
+        for i in range(0, len(truelabel_test)):
+            if truelabel_test[i] == predict_label[i]:
+                count += 1
+        print(count)
+        print(len(truelabel_test))
+        print(count / len(truelabel_test))
+        # 调用accuracy_score计算准确率
+        acc = accuracy_score(truelabel_test, predict_label)
+        print(acc)
+
     def df_to_dataset(self, dataframe, shuffle=True, batch_size=32):
         """
         Since the data has been normalized in the edge router, there is no need to do normalization.
@@ -88,11 +215,14 @@ class autotask():
         labels = dataframe.pop('appname')
         # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
         dataArray = dataframe.values
+        # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
+        #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
+        #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
 
         # propress labels
-        newlabels, res = self._propress_label(labels)
-        le = LabelEncoder()
-        newlabels = le.fit_transform(labels)
+        newlabels, res = self._propress_label(labels, self.opt.apps)
+        # le = LabelEncoder()
+        # newlabels = le.fit_transform(labels)
 
         # process numic values
         # X = self._process_num(dataArray)
@@ -195,7 +325,7 @@ class autotask():
         # data = data.drop(labels=['num'], axis=1)
         return X, x_test, y_train, y_test
 
-    def _obtain_data_train_test(self,path = './csv_data/dataframe21.csv'):
+    def _obtain_data_train_test(self):
         """
         get dataset from mysql
         the get train, val, and test dateset
@@ -206,23 +336,19 @@ class autotask():
         """
         # appname=["aiqiyi","bilibili","douyin","hepingjingying","QQyinyue","tengxunhuiyi","wangzherongyao","yuanshen","zhanshuangpamishi","zuoyebang"]
 
-        if os.path.exists(path):
+        if os.path.exists('./csv_data/dataframe%d.csv'%(self.opt.nclass)):
             ## if exist train data, read data
-            dataframe_pd = pd.read_csv(path)
+            dataframe_pd = pd.read_csv('./csv_data/dataframe%d.csv'%(self.opt.nclass))
             dataframe0 = dataframe_pd.drop(dataframe_pd.columns[0],axis=1)
         else:
             ## read data from sql
             time_i = time.time()
-            dataframe0 = self.mysqldata.total_get_data(app=('原神','和平精英','王者荣耀','抖音','bilibili',
-                                                            '爱奇艺','腾讯会议','作业帮','QQ音乐','优酷视频',
-                                                            '哈利波特魔法觉醒','央视影音','欢乐麻将','狼人杀',
-                                                            '芒果TV','虎牙直播','VR','狂野飙车9竞速传奇','英雄联盟手游',
-                                                            '快手','猿辅导'),
-                                                       featurebase= 'AP_flowfeature1')
+            dataframe0 = self.mysqldata.total_get_data(app=('QQ炫舞手游','QQ飞车','爱奇艺','优酷视频','狂野飙车9竞速传奇'),
+                                                       featurebase= self.opt.tableName)
             time_o = time.time()
             end_time = time_o - time_i
             print("get data from mysql:", end_time)
-            dataframe0.to_csv(path)
+            dataframe0.to_csv('./csv_data/dataframe%d.csv'%(self.opt.nclass))
         # # print(dataframe0.columns)
         # 36个特征
         # dataframe_del = dataframe0.drop(['port1', 'port2', 'startSec', 'startNSec', 'endSec', 'endNSec'], axis=1)
@@ -244,7 +370,7 @@ class autotask():
 
             time_feature_s = time.time()
 
-            featurelist = self._select_features(path)
+            featurelist = self._select_features('./csv_data/dataframe%d.csv'%(self.opt.nclass))
 
             time_feature_e = time.time()
             time_sf += time_feature_e-time_feature_s
@@ -291,12 +417,13 @@ class autotask():
         predict_label = np.argmax(prediction, axis=1)
         plot_conf(predict_label, truelabels_te, reskey)
 
-        model.save('./savedmodels/model_0321_21_49.h5')
+        model.save(self.opt.model_file)
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
         return auc
         # return train_ds,val_ds,test_ds
 
+    # alas
     def get_f1(self, y_test):
         '''
         get f1
@@ -308,7 +435,7 @@ class autotask():
 
         return f1
 
-    # 判断
+    # alas
     def train_predit(self):
         # 重新抓取新的数据集
         X_train, X_test, y_train, y_test = self.obtaindata()
@@ -328,13 +455,14 @@ class autotask():
         print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
     #    @run_every(30,'day')
-
     # 此处设计在线学习的module
     def process_run(self):
         if (self.opt.isInitialization == 'yes'):
 
-            if not os.path.exists('./savedmodels/my_model'):
+            if not os.path.exists(self.opt.model_file):
                 auc = self._obtain_data_train_test()
+            else:
+                self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
 
         elif (self.opt.isInitialization == 'no'):
 
@@ -348,15 +476,18 @@ class autotask():
                 raise Exception('dont exist folder!')
 
             # alist.append('appname')
+            # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
+            #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
+            #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
             try:
                 embediatest = embediaModel(
-                    OUTPUT_FOLDER='outputs/',
-                    PROJECT_NAME='model_0321_21_49',
-                    MODEL_FILE='savedmodels/model_0321_21_49.h5',
-                    Test_Example='./csv_data/dataframe21.csv',
+                    OUTPUT_FOLDER=self.opt.output_folder,
+                    PROJECT_NAME=self.opt.project_name,
+                    MODEL_FILE=self.opt.model_file,
+                    Test_Example='./csv_data/dataframe%d.csv'%(self.opt.nclass),
                     Feature_List=alist
                 )
-                embediatest.output_model_c()
+                embediatest.output_model_c(self.opt.apps)
 
             except Exception as e:
                 print("error:",e.__class__.__name__)
