@@ -31,15 +31,37 @@ class model_c_data():
         newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
         return newdf
 
-    def _obtainData(self):
+    def _propress_label(self, labels,sorted_labels):
+        """Encode target labels with value between 0 and n_classes-1.
+
+        This transformer should be used to encode target values, *i.e.* `y`, and
+        not the input `X`.
+
+        :param data:
+        :return: numic
+        """
+        reskey = {}
+        for i in sorted_labels:
+            reskey.update({i: sorted_labels.index(i)})
+        print(reskey)
+        # map映射
+        labels = labels.map(reskey).values
+
+        return labels, reskey
+
+    def _obtainData(self,sorted_labels):
 
         df0 = pd.read_csv(self.data_path)
         df = df0[self.feature_list]
         newdf = self._delinf(df)
         dataframe = newdf.copy()
         labels = dataframe.pop('appname')
-        le = LabelEncoder()
-        label = le.fit_transform(labels)
+        # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
+        #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
+        #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
+
+        # propress labels
+        newlabels, res = self._propress_label(labels, sorted_labels)
         dataArray = dataframe.values
         # mm = MinMaxScaler()
         # X = mm.fit_transform(dataArray)
@@ -47,7 +69,7 @@ class model_c_data():
         lenx = len(X)
         newx = X.reshape((lenx, 7, 7, 1))
 
-        return newx,label
+        return newx,newlabels
 
     def _data_to_array_str(self,data, macro_converter, clip=120):
         output = ''
@@ -115,9 +137,9 @@ static {data_type} {var_name}[][49]= {{
 
         return label
 
-    def generate_data_c(self):
+    def generate_data_c(self,sorted_labels):
 
-        x,y = self._obtainData()
+        x,y = self._obtainData(sorted_labels)
         options = ProjectOptions()
         options.example_data = x
         options.data_type = 0
@@ -137,7 +159,10 @@ if __name__ == '__main__':
             line = line.strip('\n')
             featurelist.append(line)
     nl= model_c_data('../csv_data/dataframe21.csv',featurelist)
-    con,label = nl.generate_data_c()
+    sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
+                     '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
+                     '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
+    con,label = nl.generate_data_c(sorted_labels)
     # print(con)
     file_management.save_to_file(os.path.join('../outputs/data_c', 'twenty_label_c' + '.h'), label)
     file_management.save_to_file(os.path.join('../outputs/data_c', 'twenty_class_c' + '.h'), con)
