@@ -8,7 +8,7 @@
 """
 import pandas as pd
 import numpy as np
-from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Masking
+from keras.layers import Conv2D, MaxPool2D, Flatten, Dense, BatchNormalization,Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn import preprocessing
 from sklearn.metrics import classification_report
@@ -18,8 +18,9 @@ from tensorflow import keras
 from keras_flops import get_flops
 
 class autonetworks():
+
   def __init__(self,nclasses,nfeatures):
-    self.hidden_layers = 1
+    self.hidden_layers = 3
     self.layer_size = 128
     self.learning_rate = 0.0001
     self.n_class = nclasses
@@ -62,19 +63,32 @@ class autonetworks():
 #     # model.add(MaxPool2D(pool_size=(2,2)))
 #     model.add(Flatten())
 
-#  输入6*6*1
-    model.add(Conv2D(filters=32, kernel_size=(2,2), activation='relu', input_shape=[7,7,1]))
-    model.add(Conv2D(filters=64, kernel_size=(2,2), activation='relu'))
-    model.add(MaxPool2D(pool_size=(2,2)))
-    # model.add(Conv2D(64, kernel_size=(2,2),activation='relu'))
-    # model.add(Conv2D(16, kernel_size=(2,2), activation='relu'))
+    for i in range(4):
+        model.add(Conv2D(filters=16*(i+1), kernel_size=(2,2), activation='relu', input_shape=[7,7,1]))
+        model.add(BatchNormalization())
+        model.add(Dropout(0.05))
+
+    # model.add(Conv2D(filters=16, kernel_size=(2,2), activation='relu', input_shape=[7,7,1]))
+    # model.add(BatchNormalization())
+    # model.add(Dropout(0.05))
+    # model.add(Conv2D(filters=32, kernel_size=(2,2), activation='relu'))
+    # model.add(BatchNormalization())
+    # model.add(Dropout(0.05))
+    # model.add(Conv2D(filters=64, kernel_size=(2, 2), activation='relu'))
+    # model.add(BatchNormalization())
+    # model.add(Dropout(0.05))
     # model.add(MaxPool2D(pool_size=(2,2)))
+    # model.add(Conv2D(filters=128, kernel_size=(2,2),activation='relu'))
+    # model.add(Conv2D(filters=128, kernel_size=(2,2), activation='relu'))
+    model.add(MaxPool2D(pool_size=(2,2)))
     model.add(Flatten())
 
     for _ in range(self.hidden_layers - 1):
         model.add(keras.layers.Dense(self.layer_size,
                                      activation = 'relu'))
-    model.add(keras.layers.Dense(self.layer_size, activation='relu'))
+        model.add(Dropout(0.05))
+
+    model.add(keras.layers.Dense(self.layer_size, activation='tanh'))
     model.add(Dense(self.n_class, activation='softmax'))
     optimizer = keras.optimizers.RMSprop(self.learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer,metrics=self.metrics)
@@ -102,7 +116,8 @@ def build_model(hidden_layers = 1,
 # unit test
 if __name__ == '__main__':
 
-    model = autonetworks(11, 49)
+    model = autonetworks(5, 49)
     cm = model.buildmodels()
+    cm.summary()
     flops = get_flops(cm, batch_size=1)
     print(f"FLOPS: {flops / 10 ** 9:.03} G")
