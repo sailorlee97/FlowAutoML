@@ -31,22 +31,46 @@ class embediaModel():
 
         return newdf
 
-    def output_model_c(self):
+    def _propress_label(self, labels,sorted_labels):
+        """Encode target labels with value between 0 and n_classes-1.
+
+        This transformer should be used to encode target values, *i.e.* `y`, and
+        not the input `X`.
+
+        :param data:
+        :return: numic
+        """
+
+        reskey = {}
+        for i in sorted_labels:
+            reskey.update({i: sorted_labels.index(i)})
+        print(reskey)
+        # map映射
+        labels = labels.map(reskey).values
+
+        print(labels)
+        return labels, reskey
+
+    def output_model_c(self,sorted_labels):
 
         df0 = pd.read_csv(self.Test_Example)
         df = df0[self.Feature_List]
         newdf = self._delinf(df)
         dataframe = newdf.copy()
         labels = dataframe.pop('appname')
-        le = LabelEncoder()
-        label = le.fit_transform(labels)
+        # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
+        #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
+        #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
+
+        # propress labels
+        newlabels, res = self._propress_label(labels, sorted_labels)
         dataArray = dataframe.values
         # mm = MinMaxScaler()
         # X = mm.fit_transform(dataArray)
         X = np.expand_dims(dataArray.astype(float), axis=2)
         lenx = len(X)
         newx = X.reshape((lenx, 7, 7, 1))
-        x_train, x_test, y_train, y_test = train_test_split(newx, label, test_size=0.1, random_state=0)
+        x_train, x_test, y_train, y_test = train_test_split(newx, newlabels, test_size=0.1, random_state=0)
         model = tf.keras.models.load_model(self.MODEL_FILE)
 
         model._name = self.PROJECT_NAME
@@ -57,7 +81,7 @@ class embediaModel():
 
         options = ProjectOptions()
         options.project_type = ProjectType.C
-        options.data_type = ModelDataType.FLOAT
+        options.data_type = ModelDataType.FIXED32
         options.debug_mode = DebugMode.DISCARD
         options.example_data = sample
         options.example_comment = comment
