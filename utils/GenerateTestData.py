@@ -126,12 +126,8 @@ static {data_type} {var_name}[][49]= {{
         ids = options.example_labels
         src_h = os.path.join(src_folder, 'main/example_file.h')
 
-        if options.data_type == ModelDataType.FLOAT or options.data_type == ModelDataType.BINARY:
-            def conv1(s):
-                return s
-        else:
-            def conv1(s):
-                return f"FL2FX({s})"
+        def conv1(s):
+            return s
 
         labels = f'''
         uint16_t {var_name}_id[] = {{ 
@@ -153,7 +149,7 @@ static {data_type} {var_name}[][49]= {{
         x,y = self._obtainData(sorted_labels,50)
         options = ProjectOptions()
         options.example_data = x
-        options.data_type = 1
+        options.data_type = 0
         options.example_labels = y
         content = self._generateData('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
         label = self._generateLabel('E:\work_code_program\FlowAutoML\embedia\libraries', 'sample_data',options)
