@@ -81,7 +81,7 @@ class embediaModel():
 
         options = ProjectOptions()
         options.project_type = ProjectType.C
-        options.data_type = ModelDataType.FIXED32
+        options.data_type = ModelDataType.FLOAT
         options.debug_mode = DebugMode.DISCARD
         options.example_data = sample
         options.example_comment = comment
