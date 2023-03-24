@@ -20,9 +20,9 @@ from keras_flops import get_flops
 class autonetworks():
 
   def __init__(self,nclasses,nfeatures):
-    self.hidden_layers = 3
+    self.hidden_layers = 2
     self.layer_size = 128
-    self.learning_rate = 0.0001
+    self.learning_rate = 0.0002
     self.n_class = nclasses
     self.features = nfeatures
     self.metrics = [
@@ -63,9 +63,9 @@ class autonetworks():
 #     # model.add(MaxPool2D(pool_size=(2,2)))
 #     model.add(Flatten())
 
-    for i in range(4):
+    for i in range(3):
         model.add(Conv2D(filters=16*(i+1), kernel_size=(2,2), activation='relu', input_shape=[7,7,1]))
-        model.add(BatchNormalization())
+        # model.add(BatchNormalization())
         model.add(Dropout(0.05))
 
     # model.add(Conv2D(filters=16, kernel_size=(2,2), activation='relu', input_shape=[7,7,1]))
