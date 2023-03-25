@@ -202,11 +202,11 @@ class autotask():
         acc = accuracy_score(truelabel_test, predict_label)
         print(acc)
 
-    def df_to_dataset(self, dataframe, shuffle=True, batch_size=32):
+    def df_to_dataset(self, dataframe, shuffle=True):
         """
         Since the data has been normalized in the edge router, there is no need to do normalization.
 
-        :param dataframe:
+        :param dataframe: Data after normalization
         :param shuffle:
         :param batch_size:
         :return:
@@ -215,10 +215,6 @@ class autotask():
         labels = dataframe.pop('appname')
         # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
         dataArray = dataframe.values
-        # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
-        #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
-        #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
-
         # propress labels
         newlabels, res = self._propress_label(labels, self.opt.apps)
         # le = LabelEncoder()
@@ -238,8 +234,8 @@ class autotask():
         ds = tf.data.Dataset.from_tensor_slices((newx, y_train))
         if shuffle:
             ds = ds.shuffle(buffer_size=len(dataframe))
-        ds = ds.batch(batch_size)
-        ds = ds.prefetch(batch_size)
+        ds = ds.batch(self.opt.batch_size)
+        ds = ds.prefetch(self.opt.batch_size)
         return ds, res, newlabels
 
     # alas
@@ -293,37 +289,30 @@ class autotask():
         return features
 
     # alas
-    def obtaindata(self):
-        '''
-
-        :return:
-        '''
-
-        time_i = time.time()
-        # y_train = keras.utils.to_categorical(y_train, 10)
-        X_train, X_test, y_train, y_test = self.mysqldata.get_data(limitnum=10000)
-        time_o = time.time()
-        end_time = time_o - time_i
-        print("get data from mysql:", end_time)
-
-        mm = MinMaxScaler()
-        X_train = mm.fit_transform(X_train)
-        X_test = mm.fit_transform(X_test)
-        y_train = keras.utils.to_categorical(y_train, self.opt.nclass)
-        y_test = keras.utils.to_categorical(y_test, self.opt.nclass)
-        # train_ds = self.df_to_dataset(X_train)
-        # feature_columns = []
-        #
-        # # numeric cols
-        # for header in X_train.columns:
-        #     feature_columns.append(feature_column.numeric_column(header))
-        # feature_layer = tf.keras.layers.DenseFeatures(feature_columns)
-
-        # expand dimennsons
-        X = np.expand_dims(X_train.astype(float), axis=2)
-        x_test = np.expand_dims(X_test.astype(float), axis=2)
-        # data = data.drop(labels=['num'], axis=1)
-        return X, x_test, y_train, y_test
+    # def obtaindata(self):
+    #     '''
+    #
+    #     :return:
+    #     '''
+    #
+    #     time_i = time.time()
+    #     # y_train = keras.utils.to_categorical(y_train, 10)
+    #     X_train, X_test, y_train, y_test = self.mysqldata.get_data(limitnum=10000)
+    #     time_o = time.time()
+    #     end_time = time_o - time_i
+    #     print("get data from mysql:", end_time)
+    #
+    #     mm = MinMaxScaler()
+    #     X_train = mm.fit_transform(X_train)
+    #     X_test = mm.fit_transform(X_test)
+    #     y_train = keras.utils.to_categorical(y_train, self.opt.nclass)
+    #     y_test = keras.utils.to_categorical(y_test, self.opt.nclass)
+    #
+    #     # expand dimennsons
+    #     X = np.expand_dims(X_train.astype(float), axis=2)
+    #     x_test = np.expand_dims(X_test.astype(float), axis=2)
+    #     # data = data.drop(labels=['num'], axis=1)
+    #     return X, x_test, y_train, y_test
 
     def _obtain_data_train_test(self):
         """
@@ -334,7 +323,6 @@ class autotask():
 
         :return: predict values
         """
-        # appname=["aiqiyi","bilibili","douyin","hepingjingying","QQyinyue","tengxunhuiyi","wangzherongyao","yuanshen","zhanshuangpamishi","zuoyebang"]
 
         if os.path.exists('./csv_data/dataframe%d.csv'%(self.opt.nclass)):
             ## if exist train data, read data
@@ -343,15 +331,13 @@ class autotask():
         else:
             ## read data from sql
             time_i = time.time()
-            dataframe0 = self.mysqldata.total_get_data(app=('QQ炫舞手游','QQ飞车','爱奇艺','优酷视频','狂野飙车9竞速传奇'),
+            dataframe0 = self.mysqldata.total_get_data(app=self.opt.appsql,
                                                        featurebase= self.opt.tableName)
             time_o = time.time()
             end_time = time_o - time_i
             print("get data from mysql:", end_time)
             dataframe0.to_csv('./csv_data/dataframe%d.csv'%(self.opt.nclass))
-        # # print(dataframe0.columns)
-        # 36个特征
-        # dataframe_del = dataframe0.drop(['port1', 'port2', 'startSec', 'startNSec', 'endSec', 'endNSec'], axis=1)
+
         dataframe = dataframe0.replace([np.inf, -np.inf], np.nan).dropna()
         # labels = dataframe.pop('appname')
         # newlabel = labels.to_frame('appname')
@@ -391,25 +377,27 @@ class autotask():
         train, test = train_test_split(dataframe1, test_size=0.2)
         train, val = train_test_split(train, test_size=0.2)
 
-        train_ds, res_tr, truelabels_tr = self.df_to_dataset(train, batch_size=self.opt.batch_size)
-        val_ds, res_va, truelabels_va = self.df_to_dataset(val, shuffle=False, batch_size=self.opt.batch_size)
-        test_ds, res_te, truelabels_te = self.df_to_dataset(test, shuffle=False, batch_size=self.opt.batch_size)
+        train_ds, res_tr, truelabels_tr = self.df_to_dataset(train)
+        val_ds, res_va, truelabels_va = self.df_to_dataset(val, shuffle=False)
+        test_ds, res_te, truelabels_te = self.df_to_dataset(test, shuffle=False)
 
         reskey = list(res_te.keys())
-        print(reskey)
+        # print(reskey)
 
         cnnmodel = autonetworks(self.opt.nclass, 49)
         model = cnnmodel.buildmodels()
 
         time_train_s = time.time()
+
         model.fit(train_ds,
                   validation_data=val_ds,
                   epochs=self.opt.epochs)
         loss, accuracy, precision, recall, auc = model.evaluate(test_ds)
+
         time_train_e = time.time()
         train_time = time_train_e-time_train_s
-        print('time of training: {} min'.format(train_time/60))
 
+        print('time of training: {} min'.format(train_time/60))
         time_total = train_time+time_sf
         print('total_time: {} min'.format(time_total/60))
 
@@ -419,9 +407,7 @@ class autotask():
 
         model.save(self.opt.model_file)
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
-
         return auc
-        # return train_ds,val_ds,test_ds
 
     # alas
     def get_f1(self, y_test):
@@ -436,25 +422,25 @@ class autotask():
         return f1
 
     # alas
-    def train_predit(self):
-        # 重新抓取新的数据集
-        X_train, X_test, y_train, y_test = self.obtaindata()
-        # train_ds, val_ds, test_ds = self.obtaindata_new()
-        inp_size = X_train.shape[1]
+    # def train_predit(self):
+    #     # 重新抓取新的数据集
+    #     X_train, X_test, y_train, y_test = self.obtaindata()
+    #     # train_ds, val_ds, test_ds = self.obtaindata_new()
+    #     inp_size = X_train.shape[1]
+    #
+    #     time_s = time.time()
+    #     cnnmodel = autonetworks(self.opt.nclass, inp_size)
+    #     model = cnnmodel.buildmodels()
+    #     model.fit(X_train, y_train, epochs=self.opt.epochs, batch_size=64)
+    #     # estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=self.opt.epochs, batch_size=64, verbose=1)
+    #     # estimator.fit(X_train, y_train)
+    #     time_e = time.time()
+    #     train_time = time_e - time_s
+    #     print("train time:", train_time)
+    #     y_pred = model.predict(y_test)
+    #     print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
-        time_s = time.time()
-        cnnmodel = autonetworks(self.opt.nclass, inp_size)
-        model = cnnmodel.buildmodels()
-        model.fit(X_train, y_train, epochs=self.opt.epochs, batch_size=64)
-        # estimator = KerasClassifier(build_fn=cnnmodel.buildmodels, epochs=self.opt.epochs, batch_size=64, verbose=1)
-        # estimator.fit(X_train, y_train)
-        time_e = time.time()
-        train_time = time_e - time_s
-        print("train time:", train_time)
-        y_pred = model.predict(y_test)
-        print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
 
-    #    @run_every(30,'day')
     # 此处设计在线学习的module
     def process_run(self):
         if (self.opt.isInitialization == 'yes'):
@@ -475,10 +461,6 @@ class autotask():
             else:
                 raise Exception('dont exist folder!')
 
-            # alist.append('appname')
-            # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
-            #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
-            #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
             try:
                 embediatest = embediaModel(
                     OUTPUT_FOLDER=self.opt.output_folder,
