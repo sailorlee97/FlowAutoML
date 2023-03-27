@@ -168,11 +168,9 @@ class autotask():
         dataframe = df.replace([np.inf, -np.inf], np.nan).dropna().copy()
         if split_size:
             train, test = train_test_split(dataframe, test_size=split_size)
-            test_dataframe, res_test, truelabel_test = self.df_to_dataset(test, shuffle=False,
-                                                                          batch_size=self.opt.batch_size)
+            test_dataframe, res_test, truelabel_test = self.df_to_dataset(test, shuffle=False)
         else:
-            test_dataframe, res_test, truelabel_test = self.df_to_dataset(dataframe, shuffle=False,
-                                                                          batch_size=self.opt.batch_size)
+            test_dataframe, res_test, truelabel_test = self.df_to_dataset(dataframe, shuffle=False)
         res_test = list(res_test.keys())
         # 评估和预测
         loss, accuracy, precision, recall, auc = test_model.evaluate(test_dataframe)
