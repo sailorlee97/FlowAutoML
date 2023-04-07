@@ -84,7 +84,10 @@ class ConnectMysql():
         # data = pd.read_csv("test.csv", header=0)
 
         process = df.drop(
-            ['index', 'appversion', 'appplatform', 'date', 'chargeperson'], axis=1, inplace=False)
+            ['index','appversion','appplatform','date','chargeperson',
+             's_lenVar','s_fLenVar','s_bLenVar','s_flowIATVar','s_fIATVar','s_bIATVar','s_activeVar','s_idleVar'],
+             axis=1,
+            inplace=False)
 
         return process
 
