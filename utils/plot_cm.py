@@ -12,6 +12,9 @@ def plot_confusion_matrix(cm,
                           title='Confusion matrix',
                           cmap=plt.cm.Greens,
                           normalize=True):
+
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
     accuracy = np.trace(cm) / float(np.sum(cm))
     misclass = 1 - accuracy
 
