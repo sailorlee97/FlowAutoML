@@ -69,7 +69,7 @@ class selectfeature():
                 square=True, linewidths=.5, annot=True, cbar_kws={"shrink": .70})
     plt.show()
 
-  def search_corrlate_features(self,dataframe,newlabels):
+  def search_corrlate_features(self,dataframe,newlabels,num):
 
     all_features = []
 
@@ -77,7 +77,7 @@ class selectfeature():
     sfdict = self.speardict(dataframe)
     b = list(sfdict.keys())
     print('corr:', b)
-    a = feautures[:49]['Features']
+    a = feautures[:num]['Features']
     print('start searching features!')
     for i in a:
       for j in b:
