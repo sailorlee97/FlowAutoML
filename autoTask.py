@@ -608,7 +608,8 @@ class autotask():
                     PROJECT_NAME=self.opt.project_name,
                     MODEL_FILE=self.opt.model_file,
                     Test_Example='./csv_data/dataframe%d.csv'%(self.opt.nclass),
-                    Feature_List=alist
+                    Feature_List=alist,
+                    opt = self.opt
                 )
                 embediatest.output_model_c(self.opt.apps)
 
