@@ -6,6 +6,7 @@
 @File    : embedia_test.py
 @Software: PyCharm
 """
+import math
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -18,13 +19,14 @@ import pandas as pd
 
 class embediaModel():
 
-    def __init__(self,OUTPUT_FOLDER,PROJECT_NAME,MODEL_FILE,Test_Example,Feature_List):
+    def __init__(self,OUTPUT_FOLDER,PROJECT_NAME,MODEL_FILE,Test_Example,Feature_List,opt):
 
         self.OUTPUT_FOLDER = OUTPUT_FOLDER
         self.PROJECT_NAME = PROJECT_NAME
         self.MODEL_FILE = MODEL_FILE
         self.Test_Example = Test_Example
         self.Feature_List = Feature_List
+        self.opt = opt
 
     def _delinf(self,dataframe):
         newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
@@ -69,7 +71,7 @@ class embediaModel():
         # X = mm.fit_transform(dataArray)
         X = np.expand_dims(dataArray.astype(float), axis=2)
         lenx = len(X)
-        newx = X.reshape((lenx, 7, 7, 1))
+        newx = X.reshape((lenx,int(math.sqrt(self.opt.number_features)), int(math.sqrt(self.opt.number_features)), 1))
         x_train, x_test, y_train, y_test = train_test_split(newx, newlabels, test_size=0.1, random_state=0)
         model = tf.keras.models.load_model(self.MODEL_FILE)
 
