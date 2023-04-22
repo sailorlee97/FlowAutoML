@@ -26,16 +26,32 @@ class autonetworks():
       keras.metrics.Recall(name='recall'),
       keras.metrics.AUC(name='auc'),
     ]
+
+  def checkFeatures(self):
+    if self.features == 25 or self.features == 36 or self.features == 49 or self.features == 64 or self.features == 81:
+      print("check")
+    else:
+      raise ValueError("The number of features can only be 25, 36, 49, 64, 81.")
+
   def buildmodels(self):
 
+    convdict = {
+        25:2,
+        36:3,
+        49:4,
+        64:5,
+        81:6
+    }
+    cov_num = convdict.get(self.features)
+    self.checkFeatures()
     model = keras.models.Sequential()
     model.add(Conv2D(filters=64, kernel_size=(2, 2), activation='relu', input_shape=[int(math.sqrt(self.features)), int(math.sqrt(self.features)), 1]))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(Dropout(0.05))
 
-    for i in range(3):
+    for i in range(cov_num):
         model.add(Conv2D(filters=64*(i+2), kernel_size=(2,2), activation='relu'))
-        model.add(BatchNormalization())
+        # model.add(BatchNormalization())
         model.add(Dropout(0.05))
 
     model.add(MaxPool2D(pool_size=(2,2)))
@@ -55,7 +71,14 @@ class autonetworks():
 
 # unit test
 if __name__ == '__main__':
-
+    # convdict = {
+    #     25:2,
+    #     36:3,
+    #     49:4,
+    #     64:5,
+    #     81:6
+    # }
+    # a = convdict.get(36)
     model = autonetworks(5, 36)
     cm = model.buildmodels()
     cm.summary()
