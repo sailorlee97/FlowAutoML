@@ -14,44 +14,25 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from embedia.model_generator.project_options import *
 from embedia.project_generator import ProjectGenerator
+from models.base import BaseClassification
 
 import pandas as pd
 
-class embediaModel():
+class embediaModel(BaseClassification):
 
     def __init__(self,OUTPUT_FOLDER,PROJECT_NAME,MODEL_FILE,Test_Example,Feature_List,opt):
 
+        super(embediaModel, self).__init__(opt)
         self.OUTPUT_FOLDER = OUTPUT_FOLDER
         self.PROJECT_NAME = PROJECT_NAME
         self.MODEL_FILE = MODEL_FILE
         self.Test_Example = Test_Example
         self.Feature_List = Feature_List
-        self.opt = opt
 
     def _delinf(self,dataframe):
         newdf = dataframe.replace([np.inf, -np.inf], np.nan).dropna()
 
         return newdf
-
-    def _propress_label(self, labels,sorted_labels):
-        """Encode target labels with value between 0 and n_classes-1.
-
-        This transformer should be used to encode target values, *i.e.* `y`, and
-        not the input `X`.
-
-        :param data:
-        :return: numic
-        """
-
-        reskey = {}
-        for i in sorted_labels:
-            reskey.update({i: sorted_labels.index(i)})
-        print(reskey)
-        # map映射
-        labels = labels.map(reskey).values
-
-        print(labels)
-        return labels, reskey
 
     def output_model_c(self,sorted_labels):
 
@@ -60,9 +41,6 @@ class embediaModel():
         newdf = self._delinf(df)
         dataframe = newdf.copy()
         labels = dataframe.pop('appname')
-        # sorted_labels = ['原神', '和平精英', '王者荣耀', '抖音', 'bilibili', '爱奇艺', '腾讯会议', '作业帮', 'QQ音乐',
-        #                  '优酷视频', '哈利波特魔法觉醒', '央视影音', '欢乐麻将', '狼人杀', '芒果TV', '虎牙直播', 'VR',
-        #                  '狂野飙车9竞速传奇', '英雄联盟手游', '快手', '猿辅导']
 
         # propress labels
         newlabels, res = self._propress_label(labels, sorted_labels)

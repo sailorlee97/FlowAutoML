@@ -13,15 +13,13 @@ from pandas import DataFrame
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler,Normalizer,StandardScaler
-from IPy import IP
 
 from embedia_test import embediaModel
 from utils.plot_cm import plot_conf, multi_roc
 from models.autonetworks import autonetworks
+from models.base import BaseClassification
 from utils.csvdb import ConnectMysql
 from tensorflow import keras
-from sklearn.metrics import f1_score
 from utils.selectfeatures import selectfeature
 import pandas as pd
 import os
@@ -31,97 +29,13 @@ import time
 import tensorflow as tf
 
 
-class autotask():
+class autotask(BaseClassification):
 
     def __init__(self, opt):
-        self.opt = opt
+
+        super(autotask, self).__init__(opt)
+        # self.opt = opt
         self.mysqldata = ConnectMysql()
-
-    def _propress_label(self, labels,sorted_labels):
-        """Encode target labels with value between 0 and n_classes-1.
-
-        This transformer should be used to encode target values, *i.e.* `y`, and
-        not the input `X`.
-
-        :param data:
-        :return: numic
-        """
-        # le = LabelEncoder()
-        # newlabels = le.fit_transform(labels)
-        #
-        # res = {}
-        # for cl in le.classes_:
-        #     res.update({cl: le.transform([cl])[0]})
-        # print(res)
-        reskey = {}
-        for i in sorted_labels:
-            reskey.update({i: sorted_labels.index(i)})
-        print(reskey)
-        # map映射
-        labels = labels.map(reskey).values
-
-        print(labels)
-        return labels, reskey
-        # return newlabels, res
-
-    # alas
-    def _process_num(self, num):
-        """
-            This estimator scales and translates each feature individually such
-        that it is in the given range on the training set, e.g. between
-        zero and one.
-
-        The transformation is given by::
-
-            X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
-            X_scaled = X_std * (max - min) + min
-
-        where min, max = feature_range.
-
-        This transformation is often used as an alternative to zero mean,
-        unit variance scaling.
-        :param num: dataframe or array
-        :return:  array
-        """
-        mm = MinMaxScaler()
-        X = mm.fit_transform(num)
-
-        return X
-
-    def _process_normalizer(self,x):
-        """Normalize samples individually to unit norm.
-
-        Each sample (i.e. each row of the data matrix) with at least one
-        non zero component is rescaled independently of other samples so
-        that its norm (l1, l2 or inf) equals one.
-
-        This transformer is able to work both with dense numpy arrays and
-        scipy.sparse matrix (use CSR format if you want to avoid the burden of
-        a copy / conversion).
-
-        Scaling inputs to unit norms is a common operation for text
-        classification or clustering for instance. For instance the dot
-        product of two l2-normalized TF-IDF vectors is the cosine similarity
-        of the vectors and is the base similarity metric for the Vector
-        Space Model commonly used by the Information Retrieval community.
-
-        Read more in the :ref:`User Guide <preprocessing_normalization>`.
-
-        :param x:
-        :return:
-        """
-
-        scaler = Normalizer(norm='l2')
-        scaler.fit(x)
-
-        return scaler.fit_transform(x)
-
-    def _process_standard(self,x):
-
-        scaler = StandardScaler()
-        scaler.fit(x)
-
-        return scaler.transform(x)
 
     def test_single(self, model_path, csv_path, name, label_number, isall=False):
         """
@@ -422,18 +336,6 @@ class autotask():
 
         return features
 
-    def ipToValue(self,ipseries):
-        '''
-
-        :param ipseries:
-        :return:list
-        '''
-        ipd = []
-        for i in ipseries:
-            ip = IP(i)
-            ipd.append(ip.int())
-        return ipd
-
     def _obtain_data_train_test(self):
         """
         get dataset from mysql
@@ -567,18 +469,6 @@ class autotask():
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
         return auc
 
-    # alas
-    def get_f1(self, y_test):
-        '''
-        get f1
-        :param y_test:
-        :return:
-        '''
-        y_pred = self._obtain_data_train_test()
-        f1 = f1_score(y_test.argmax(-1), y_pred.argmax(-1), average='weighted')
-
-        return f1
-
     # 此处设计在线学习的module
     def process_run(self):
         if (self.opt.isInitialization == 'yes'):
@@ -587,8 +477,8 @@ class autotask():
                 auc = self._obtain_data_train_test()
             else:
                 # self.test_all('./savedmodels/model_0407_5_49.h5', './csv_data/dataframe%d.csv'%(self.opt.nclass))
-                # self.test_new_all('./savedmodels/model_0413_5_25.h5', '5APP_flowfeature_update_int')
-                self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv' % (self.opt.nclass))
+                self.test_new_all('./savedmodels/model_0422_11_49.h5', '5APP_flowfeature_update_int')
+                # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv' % (self.opt.nclass))
                 # self.test_single(self.opt.model_file, './csv_data/yuanshen_v3.5.0_Android_20230329_jkw.csv', '原神', 0, isall=False)
 
         elif (self.opt.isInitialization == 'no'):
