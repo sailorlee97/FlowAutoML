@@ -124,3 +124,11 @@ class BaseClassification():
         f1 = f1_score(y_test.argmax(-1), y_pred.argmax(-1), average='weighted')
 
         return f1
+
+    def _writefeatures(self,path,featurelist):
+
+        f = open(path, 'a')
+        for i in featurelist:
+            f.write(i)
+            f.write('\n')
+        f.close()
