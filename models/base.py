@@ -114,7 +114,7 @@ class BaseClassification():
             ipd.append(ip.int())
         return ipd
 
-    def get_f1(self, y_test,y_pred):
+    def get_f1(self, y_test,y_pred) -> float:
         '''
         get f1
         :param y_test:
@@ -132,3 +132,12 @@ class BaseClassification():
             f.write(i)
             f.write('\n')
         f.close()
+
+    def _readfeatures(self,path) -> list:
+
+        featurelist = []
+        for line in open(path):
+            line = line.strip('\n')
+            featurelist.append(line)
+
+        return featurelist
