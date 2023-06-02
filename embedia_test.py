@@ -11,7 +11,6 @@ import math
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from embedia.model_generator.project_options import *
 from embedia.project_generator import ProjectGenerator
 from models.base import BaseClassification
@@ -68,7 +67,7 @@ class embediaModel(BaseClassification):
             'FIXED16': ModelDataType.FIXED16,
             'FIXED8': ModelDataType.FIXED8,
         }
-        
+
         options.data_type = transformdict.get(self.opt.embedd_data_type)
         options.debug_mode = DebugMode.DISCARD
         options.example_data = sample

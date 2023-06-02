@@ -9,13 +9,12 @@
 """
 import pymysql
 import pandas as pd
-import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 class ConnectMysql():
 
-    # 金凯威
+
     def __init__(self):
         self.conn = pymysql.connect(
             user='runtrend',
@@ -84,10 +83,22 @@ class ConnectMysql():
         # data = pd.read_csv("test.csv", header=0)
 
         process = df.drop(
-            ['index','appversion','appplatform','date','chargeperson',
+            ['index','appversion','appplatform','date','chargeperson','apptype',
              's_lenVar','s_fLenVar','s_bLenVar','s_flowIATVar','s_fIATVar','s_bIATVar','s_activeVar','s_idleVar'],
              axis=1,
             inplace=False)
+
+        return process
+
+    def get_background(self,featurebase):
+
+        sql = "select * from {} WHERE pcaptype = 'background' ".format(featurebase)
+        df = pd.read_sql(sql, con=self.conn)
+        print('Read from sqlserver background successfully!')
+        process = df.drop(
+            ['index','appversion','appplatform','date','chargeperson','apptype',
+             's_lenVar','s_fLenVar','s_bLenVar','s_flowIATVar','s_fIATVar','s_bIATVar','s_activeVar','s_idleVar'],
+             axis=1,inplace=False)
 
         return process
 
