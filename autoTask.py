@@ -32,6 +32,7 @@ import math
 import numpy as np
 import time
 import tensorflow as tf
+import shap
 
 simplefilter(action='ignore', category=FutureWarning)
 simplefilter(action='ignore', category=SettingWithCopyWarning)
@@ -739,6 +740,49 @@ class autotask(BaseClassification):
         # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
         return auc
 
+    def _explain_model(self,model_path):
+
+        x = pd.read_csv('./csv_data/dataframe%d.csv'%(self.opt.nclass))
+
+        alist = []
+        if os.path.exists('./log/features_%s' % (self.opt.project_name)):
+
+            for line in open('./log/features_%s' % (self.opt.project_name)):
+                line = line.strip('\n')
+                alist.append(line)
+        else:
+            raise Exception('dont exist folder!')
+
+        pd_std = pd.read_csv('./log/std.csv')
+        pd_std.columns = ['key', 'value']
+        dict_std = dict(zip(pd_std['key'], pd_std['value']))
+        pd_mean = pd.read_csv('./log/mean.csv')
+        pd_mean.columns = ['key', 'value']
+        dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
+        x = self._process_stand(alist, x, dict_mean, dict_std)
+
+        dataframe = x.copy()
+        labels = dataframe.pop('appname')
+        # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
+        dataArray = dataframe.values
+        le = LabelEncoder()
+        newlabels = le.fit_transform(labels)
+
+        # process numic values
+        # X = self._process_standard(dataArray)
+        # Since the data has been normalized in the edge router, there is no need to do normalization.
+
+        # preprocess
+        # dataArray = self._featureBernoulliRBM(dataArray)
+
+        dataArray = np.expand_dims(dataArray.astype(float), axis=2)
+        x_train = dataArray.reshape((len(dataArray), int(math.sqrt(self.opt.number_features)), int(math.sqrt(self.opt.number_features)), 1))
+        test_model = load_model(model_path)
+        explainer = shap.GradientExplainer(test_model, x_train)
+        shap_values = explainer.shap_values(x_train[:3],nsamples=3)
+        print(shap_values)
+        # shap.force_plot(explainer.expected_value, shap_values, x.iloc[299, :])
+
     # 此处设计在线学习的module
     def process_run(self):
         if (self.opt.isInitialization == 'yes'):
@@ -746,7 +790,8 @@ class autotask(BaseClassification):
             if not os.path.exists(self.opt.model_file):
                 auc = self._obtain_data_train_test()
             else:
-                self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
+                # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
+                self._explain_model(self.opt.model_file)
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5', '5APP_flowfeature_update_int')
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5','AP_flowfeature_int_withbackground')
                 # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv' % (self.opt.nclass))
