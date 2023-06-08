@@ -7,10 +7,12 @@
 @FileName: autoTask.py
 @Software: PyCharm
 """
+from array import array
 
 from keras.saving.save import load_model
 from pandas import DataFrame
 from pandas.errors import SettingWithCopyWarning
+from shap import Explanation
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -26,6 +28,7 @@ from models.base import BaseClassification
 from utils.csvdb import ConnectMysql
 from tensorflow import keras
 from utils.selectfeatures import selectfeature
+from tensorflow.python.keras.callbacks import ReduceLROnPlateau,EarlyStopping
 import pandas as pd
 import os
 import math
@@ -33,9 +36,15 @@ import numpy as np
 import time
 import tensorflow as tf
 import shap
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 
+mpl.use('TkAgg')
 simplefilter(action='ignore', category=FutureWarning)
 simplefilter(action='ignore', category=SettingWithCopyWarning)
+
+
 
 class autotask(BaseClassification):
 
@@ -264,74 +273,6 @@ class autotask(BaseClassification):
         acc = accuracy_score(truelabel_test, predict_label)
         print(acc)
 
-    def test_eight_operators(self,model_path,tableName):
-
-        test_model = load_model(model_path)
-        # 输出模型结构
-        test_model.summary()
-        # 输出文件大小（以MB为单位）
-        file_size = os.path.getsize(model_path)
-        print(f"Model size: {file_size / (1024 * 1024)} MB")
-
-        # 提取数据
-        # 从数据库中拿数据
-        dataframe_test = self.mysqldata.total_get_data(app=self.opt.appsql,
-                                                       featurebase=tableName)
-        # 获取特征
-        if self.opt.enable_all_features == 'no':
-            alist = []
-            if os.path.exists('./log/features'):
-
-                for line in open("./log/features"):
-                    line = line.strip('\n')
-                    alist.append(line)
-            else:
-                raise Exception('dont exist folder!')
-            print(alist)
-
-            df = dataframe_test[alist]
-        else:
-            df = dataframe_test.drop(columns=['s_fHeaderBytes', 's_bHeaderBytes', 's_lenSd', 's_fLenSd', 's_fIATSd',
-                                              's_bLenSd', 's_bIATSd', 's_flowIATSd', 's_idleSd', 's_activeSd'])
-            alist = df.columns
-        # 数据处理
-        dataframe = df.replace([np.inf, -np.inf], np.nan).dropna().copy()
-
-        datatype = ['education','moba','shoot','rpg','sport','vr','social','video','meeting','music']
-
-        pd_std = pd.read_csv('./log/std_%s.csv' % (datatype[0]))
-        pd_std.columns = ['key', 'value']
-        dict_std = dict(zip(pd_std['key'], pd_std['value']))
-        pd_mean = pd.read_csv('./log/mean_%s.csv' % (datatype[0]))
-        pd_mean.columns = ['key', 'value']
-        dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
-        dataframe1 = self._process_stand(alist, dataframe, dict_mean, dict_std)
-        #         predict
-        test_dataframe, res_test, truelabel_test = self.df_to_dataset(dataframe1, shuffle=False)
-        prediction = test_model.predict(test_dataframe, verbose=1)
-        predict_value = np.max(prediction, axis=1)
-        predict_label = np.argmax(prediction,axis=1)
-        np.expand_dims(predict_label,axis=1)
-
-        for i in datatype[1:]:
-
-            pd_std = pd.read_csv('./log/std_%s.csv'%(i))
-            pd_std.columns = ['key', 'value']
-            dict_std = dict(zip(pd_std['key'], pd_std['value']))
-            pd_mean = pd.read_csv('./log/mean_%s.csv'%(i))
-            pd_mean.columns = ['key', 'value']
-            dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
-            dataframe1 = self._process_stand(alist, dataframe, dict_mean, dict_std)
-    #         predict
-            test_dataframe, res_test, truelabel_test = self.df_to_dataset(dataframe1, shuffle=False)
-            prediction = test_model.predict(test_dataframe, verbose=1)
-            b = np.max(prediction, axis=1)
-            label = np.argmax(prediction,axis=1)
-            predict_value = np.vstack((predict_value, b))
-            predict_label = np.vstack((predict_label, label))
-
-        print(predict_label)
-
     def df_to_dataset(self, dataframe, shuffle=True):
         """
         Since the data has been normalized in the edge router, there is no need to do normalization.
@@ -488,91 +429,6 @@ class autotask(BaseClassification):
 
         return dataframe_app
 
-    def _eight_operators_train_test(self):
-        """
-        Using eight sets of operators, hierarchical normalization is performed.
-
-        :return:
-        """
-
-        dataframe = self._getDataFromcsv()
-        if self.opt.enable_all_features == 'no':
-
-            featurelist = []
-            time_sf = 0
-            if os.path.exists('./log/features'):
-
-                for line in open("./log/features"):
-                    line = line.strip('\n')
-                    featurelist.append(line)
-            else:
-
-                time_feature_s = time.time()
-
-                featurelist = self._select_features('./csv_data/dataframe%d.csv'%(self.opt.nclass))
-
-                time_feature_e = time.time()
-                time_sf += time_feature_e-time_feature_s
-                print('time of select features: {} min'.format(time_sf/60))
-
-                f = open('./log/features', 'a')
-                for i in featurelist:
-                    f.write(i)
-                    f.write('\n')
-                f.close()
-            dataframe1 = dataframe[featurelist]
-        else:
-
-            dataframe1 = dataframe.drop(columns=['s_fHeaderBytes','s_bHeaderBytes','s_lenSd','s_fLenSd','s_fIATSd',
-                                                 's_bLenSd','s_bIATSd','s_flowIATSd','s_idleSd','s_activeSd'])
-            featurelist = dataframe1.columns
-            time_sf = 0
-
-        if os.path.exists('./csv_data/newdataframe.csv'):
-            df2 = pd.read_csv('./csv_data/newdataframe.csv')
-        else:
-            df2 = self._select_data_stand(dataframe1,self.opt.apps[0],featurelist)
-            for i in self.opt.apps[1:]:
-                dataframe_app = self._select_data_stand(dataframe1,i,featurelist)
-                df2 = pd.concat([df2, dataframe_app], ignore_index=True)
-
-            df2.to_csv('./csv_data/newdataframe.csv',index = False)
-
-        # df2 = df2.replace([np.inf, -np.inf], np.nan)
-
-        # df2[df2 == ''] = 0
-        train, test = train_test_split(df2, test_size=0.2)
-        train, val = train_test_split(train, test_size=0.2)
-
-        train_ds, res_tr, truelabels_tr = self.df_to_dataset(train)
-        val_ds, res_va, truelabels_va = self.df_to_dataset(val, shuffle=False)
-        test_ds, res_te, truelabels_te = self.df_to_dataset(test, shuffle=False)
-
-        reskey = list(res_te.keys())
-        # print(reskey)
-
-        cnnmodel = autonetworks(self.opt.nclass, self.opt.number_features)
-        model = cnnmodel.buildmodels()
-
-        time_train_s = time.time()
-
-        model.fit(train_ds,
-                  validation_data=val_ds,
-                  epochs=self.opt.epochs)
-        loss, accuracy, precision, recall, auc = model.evaluate(test_ds)
-
-        time_train_e = time.time()
-        train_time = time_train_e - time_train_s
-
-        print('time of training: {} min'.format(train_time / 60))
-        time_total = train_time + time_sf
-        print('total_time: {} min'.format(time_total / 60))
-
-        prediction = model.predict(test_ds, verbose=1)
-        predict_label = np.argmax(prediction, axis=1)
-        plot_conf(predict_label, truelabels_te, reskey)
-        model.save(self.opt.model_file)
-
     def _featureTransform(self,x,y):
 
         model = LinearDiscriminantAnalysis(n_components = 4)
@@ -720,11 +576,15 @@ class autotask(BaseClassification):
         cnnmodel = autonetworks(self.opt.nclass, self.opt.number_features)
         model = cnnmodel.buildmodels()
 
+        reduce_lr = ReduceLROnPlateau(monitor='loss',factor=0.2,patience=5,min_lr=0.0001)
+        earlystop_callback = EarlyStopping(monitor='accuracy', min_delta=0.0001,patience=5)
+
         time_train_s = time.time()
 
         model.fit(train_ds,
                   validation_data=val_ds,
-                  epochs=self.opt.epochs)
+                  epochs=self.opt.epochs,
+                  callbacks=[reduce_lr,earlystop_callback])
         loss, accuracy, precision, recall, auc = model.evaluate(test_ds)
 
         time_train_e = time.time()
@@ -760,7 +620,7 @@ class autotask(BaseClassification):
         pd_mean.columns = ['key', 'value']
         dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
         x = self._process_stand(alist, x, dict_mean, dict_std)
-
+        mean_ = np.array(pd_mean['value'])
         dataframe = x.copy()
         labels = dataframe.pop('appname')
         # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
@@ -779,8 +639,16 @@ class autotask(BaseClassification):
         x_train = dataArray.reshape((len(dataArray), int(math.sqrt(self.opt.number_features)), int(math.sqrt(self.opt.number_features)), 1))
         test_model = load_model(model_path)
         explainer = shap.GradientExplainer(test_model, x_train)
+
         shap_values = explainer.shap_values(x_train[:3],nsamples=3)
-        print(shap_values)
+        sample1 = DataFrame()
+        sample1['values'] = list(shap_values[0][0].reshape(49))
+        sample1['featureName'] = alist[:-1]
+
+        sample1['abs_scores'] = abs(sample1['values'])
+        sample1 = sample1.sort_values(by=['abs_scores'], ascending=False).drop(labels=['abs_scores'], axis=1)[:9]
+        sns.barplot(x = 'featureName',y = 'values',data = sample1)
+        plt.show()
         # shap.force_plot(explainer.expected_value, shap_values, x.iloc[299, :])
 
     # 此处设计在线学习的module
@@ -790,8 +658,8 @@ class autotask(BaseClassification):
             if not os.path.exists(self.opt.model_file):
                 auc = self._obtain_data_train_test()
             else:
-                # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
-                self._explain_model(self.opt.model_file)
+                self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
+                # self._explain_model(self.opt.model_file)
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5', '5APP_flowfeature_update_int')
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5','AP_flowfeature_int_withbackground')
                 # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv' % (self.opt.nclass))
