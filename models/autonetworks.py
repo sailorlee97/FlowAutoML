@@ -17,7 +17,7 @@ class autonetworks():
   def __init__(self,nclasses,nfeatures):
     self.hidden_layers = 2
     self.layer_size = 128
-    self.learning_rate = 0.0002
+    self.learning_rate = 0.002
     self.n_class = nclasses
     self.features = nfeatures
     self.metrics = [
@@ -47,7 +47,7 @@ class autonetworks():
     model = keras.models.Sequential()
     model.add(Conv2D(filters=64, kernel_size=(2, 2), activation='relu', input_shape=[int(math.sqrt(self.features)), int(math.sqrt(self.features)), 1]))
     # model.add(BatchNormalization())
-    model.add(Dropout(0.05))
+    # model.add(Dropout(0.05))
 
     for i in range(cov_num):
         model.add(Conv2D(filters=64*(i+2), kernel_size=(2,2), activation='relu'))
@@ -60,7 +60,7 @@ class autonetworks():
     for _ in range(self.hidden_layers - 1):
         model.add(keras.layers.Dense(self.layer_size,
                                      activation = 'relu'))
-        model.add(Dropout(0.05))
+    model.add(Dropout(0.05))
 
     model.add(keras.layers.Dense(self.layer_size, activation='tanh'))
     model.add(Dense(self.n_class, activation='softmax'))
