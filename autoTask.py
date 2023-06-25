@@ -584,7 +584,7 @@ class autotask(BaseClassification):
         model.fit(train_ds,
                   validation_data=val_ds,
                   epochs=self.opt.epochs,
-                  callbacks=[reduce_lr,earlystop_callback])
+                  callbacks=[reduce_lr])
         loss, accuracy, precision, recall, auc = model.evaluate(test_ds)
 
         time_train_e = time.time()
@@ -602,7 +602,7 @@ class autotask(BaseClassification):
 
     def _explain_model(self,model_path):
 
-        x = pd.read_csv('./csv_data/dataframe%d.csv'%(self.opt.nclass))
+        x = pd.read_csv('./csv_data/KingofGlorymisidentifiedasPeaceElite___20230616161057.csv')
 
         alist = []
         if os.path.exists('./log/features_%s' % (self.opt.project_name)):
@@ -619,14 +619,15 @@ class autotask(BaseClassification):
         pd_mean = pd.read_csv('./log/mean.csv')
         pd_mean.columns = ['key', 'value']
         dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
-        x = self._process_stand(alist, x, dict_mean, dict_std)
+        x.columns = alist[:-1]
+        x = self._process_stand(alist[:-1], x, dict_mean, dict_std)
         mean_ = np.array(pd_mean['value'])
         dataframe = x.copy()
-        labels = dataframe.pop('appname')
+        # labels = dataframe.pop('appname')
         # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
         dataArray = dataframe.values
-        le = LabelEncoder()
-        newlabels = le.fit_transform(labels)
+        # le = LabelEncoder()
+        # newlabels = le.fit_transform(labels)
 
         # process numic values
         # X = self._process_standard(dataArray)
@@ -654,7 +655,13 @@ class autotask(BaseClassification):
     # 此处设计在线学习的module
     def process_run(self):
         if (self.opt.isInitialization == 'yes'):
-
+            gpus = tf.config.experimental.list_physical_devices('GPU')
+            if gpus:
+                try:
+                    tf.config.experimental.set_virtual_device_configuration(
+                        gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=5120)])
+                except RuntimeError as e:
+                    print(e)
             if not os.path.exists(self.opt.model_file):
                 auc = self._obtain_data_train_test()
             else:
