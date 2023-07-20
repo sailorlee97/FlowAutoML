@@ -470,8 +470,7 @@ class autotask(BaseClassification):
             dataframe0 = self.mysqldata.total_get_data(app=self.opt.appsql,
                                                        featurebase= self.opt.tableName)
             dataframe0 = dataframe0.drop('pcaptype',axis=1)
-            dataframe1 = self.mysqldata.get_background(featurebase= self.opt.tableName
-                                                       )
+            dataframe1 = self.mysqldata.get_background(featurebase= self.opt.tableName)
             dataframe1['appname'] = 'background'
             dataframe1 = dataframe1.drop('pcaptype',axis=1)
             dataframe0 = dataframe0.append(dataframe1)
@@ -665,8 +664,8 @@ class autotask(BaseClassification):
             if not os.path.exists(self.opt.model_file):
                 auc = self._obtain_data_train_test()
             else:
-                self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
-                # self._explain_model(self.opt.model_file)
+                # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
+                self._explain_model(self.opt.model_file)
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5', '5APP_flowfeature_update_int')
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5','AP_flowfeature_int_withbackground')
                 # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv' % (self.opt.nclass))
