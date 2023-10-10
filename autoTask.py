@@ -473,7 +473,7 @@ class autotask(BaseClassification):
             dataframe1 = self.mysqldata.get_background(featurebase= self.opt.tableName)
             dataframe1['appname'] = 'background'
             dataframe1 = dataframe1.drop('pcaptype',axis=1)
-            dataframe0 = dataframe0.append(dataframe1)
+            dataframe0 = dataframe0._append(dataframe1)
             datacol = dataframe0.columns
             time_o = time.time()
             end_time = time_o - time_i
@@ -543,10 +543,11 @@ class autotask(BaseClassification):
             dataframe1 = self._process_stand(featurelist, dataframe, dict_mean, dict_std)
 
         else:
-            data_std = dataframe1.std()
+            dataframe_nolabel = dataframe1.drop(columns=['appname'])
+            data_std = dataframe_nolabel.std()
             pd_data_std = pd.DataFrame(data_std)
             pd_data_std.to_csv('./log/std.csv')
-            data_mean = dataframe1.mean()
+            data_mean = dataframe_nolabel.mean()
             pd_data_mean = pd.DataFrame(data_mean)
             pd_data_mean.to_csv('./log/mean.csv')
 
