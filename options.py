@@ -21,7 +21,7 @@ class Options():
                                  help='yes - model train;no - we will load model trained.')
         self.parser.add_argument('--label', default='appname', help='data class labels.')
         self.parser.add_argument('--epochs', default=200, help='number of epochs')
-        self.parser.add_argument('--nclass', default=13, help='number class labels.')
+        self.parser.add_argument('--nclass', default=15, help='number class labels and background.')
         self.parser.add_argument('--batch_size', default=256, help='batch_size.')
         self.parser.add_argument('--embedd_data_type', default='FLOAT', help='FLOAT, FIXED32, FIXED16, and FIXED8.')
         self.parser.add_argument('--enable_all_features', default='no',
@@ -30,11 +30,11 @@ class Options():
         # Model curing parameter
         self.parser.add_argument('--output_folder', default='outputs/', help='Path of output.')
         self.parser.add_argument('--number_features', default=49, help='number_features name.')
-        self.parser.add_argument('--project_name', default='model_0625_13_49', help='project name.')
-        self.parser.add_argument('--model_file', default='savedmodels/model_0625_13_49.h5', help='Path of model.')
+        self.parser.add_argument('--project_name', default='model_10_10_49', help='project name.')
+        self.parser.add_argument('--model_file', default='savedmodels/model_1010_15_49.h5', help='Path of model.')
         self.parser.add_argument('--apps',
-                                 default=['王者荣耀', '爱奇艺','QQ飞车','金铲铲之战','哔哩哔哩','腾讯会议','中国大学MOOC',
-                                          '虎牙直播','知乎','蛋仔派对','微博','百度贴吧'],
+                                 default=['QQ音乐', '百度贴吧','腾讯会议','虎牙直播','王者荣耀','腾讯视频','哔哩哔哩',
+                                          '抖音','中国大学MOOC','金铲铲之战','爱奇艺','香肠派对','和平精英','优酷视频'],
                                  help='Select the application of the classification. The order apps here is the order of the labels.')
 
         # database
@@ -48,7 +48,7 @@ class Options():
         self.parser.add_argument('--username', default='runtrend', help='the name that server log in.')
         self.parser.add_argument('--password', default='1qaz@WSX', help='the password that server log in.')
         self.parser.add_argument('--databaseName', default='flowfeature', help='the name that database log in.')
-        self.parser.add_argument('--tableName', default='AP_flowfeature_int_accuratelabel_dpisniffer', help='the name of table.')
+        self.parser.add_argument('--tableName', default='ZTE_AP_flowfeature_accuratelabel_sniffer', help='the name of table.')
         self.parser.add_argument('--charset', default='utf8mb4', help='the name of word.')
         self.opt = None
 
