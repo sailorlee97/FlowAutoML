@@ -40,8 +40,8 @@ class Options():
         # database
         self.parser.add_argument('--port', default=26618, help='connect server port.')
         self.parser.add_argument('--appsql',
-                                 default=('王者荣耀', '爱奇艺','QQ飞车','金铲铲之战','哔哩哔哩','腾讯会议','中国大学MOOC',
-                                          '虎牙直播','知乎','蛋仔派对','微博','百度贴吧'),
+                                 default=('QQ音乐', '百度贴吧','腾讯会议','虎牙直播','王者荣耀','腾讯视频','哔哩哔哩',
+                                          '抖音','中国大学MOOC','金铲铲之战','爱奇艺','香肠派对','和平精英','优酷视频'),
                                  help='Applications selected from the database.')
         self.parser.add_argument('--host', default='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
                                  help='server ip addr.')
