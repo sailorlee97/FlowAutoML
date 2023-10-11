@@ -46,7 +46,7 @@ class Options():
         self.parser.add_argument('--host', default='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
                                  help='server ip addr.')
         self.parser.add_argument('--username', default='runtrend', help='the name that server log in.')
-        self.parser.add_argument('--password', default='1qaz@WSX', help='the password that server log in.')
+        self.parser.add_argument('--password', default='*****', help='the password that server log in.')
         self.parser.add_argument('--databaseName', default='flowfeature', help='the name that database log in.')
         self.parser.add_argument('--tableName', default='ZTE_AP_flowfeature_accuratelabel_sniffer', help='the name of table.')
         self.parser.add_argument('--charset', default='utf8mb4', help='the name of word.')
