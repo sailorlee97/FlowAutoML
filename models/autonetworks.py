@@ -52,7 +52,7 @@ class autonetworks():
     for i in range(cov_num):
         model.add(Conv2D(filters=64*(i+2), kernel_size=(2,2), activation='relu'))
         # model.add(BatchNormalization())
-        model.add(Dropout(0.05))
+        # model.add(Dropout(0.05))
 
     model.add(MaxPool2D(pool_size=(2,2)))
     model.add(Flatten())
