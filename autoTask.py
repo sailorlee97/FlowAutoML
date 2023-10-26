@@ -189,6 +189,101 @@ class autotask(BaseClassification):
         acc = accuracy_score(truelabel_test, predict_label)
         print(acc)
 
+    def test_router(self, model_path, tableName):
+        """
+          全部类预测准确率
+            作者：张泽
+          Args:
+              model_path: 模型的存放路径
+              csv_path: 数据的存放路径
+             split_size：划分测试数据集大小
+          """
+        test_model = load_model(model_path)
+        # 输出模型结构
+        test_model.summary()
+        # 输出文件大小（以MB为单位）
+        file_size = os.path.getsize(model_path)
+        print(f"Model size: {file_size / (1024 * 1024)} MB")
+
+        # 提取数据
+        # 从数据库中拿数据
+        dataframe0 = self.mysqldata.get_router_test(app=self.opt.appsql,
+                                                   featurebase=tableName)
+        dataframe0 = dataframe0.drop('pcaptype', axis=1)
+        dataframe1 = self.mysqldata.get_router_background(featurebase=tableName)
+        dataframe1['appname'] = 'background'
+        dataframe1 = dataframe1.drop('pcaptype', axis=1)
+        df = dataframe0._append(dataframe1)
+        datacol = dataframe0.columns
+        # 获取特征
+        # df = pd.read_csv(csv_path)
+
+        if self.opt.enable_all_features == 'no':
+            alist = []
+            if os.path.exists('./log/features_%s'%(self.opt.project_name)):
+
+                for line in open('./log/features_%s'%(self.opt.project_name)):
+                    line = line.strip('\n')
+                    alist.append(line)
+            else:
+                raise Exception('dont exist folder!')
+            print(alist)
+
+            df = df[alist]
+        else:
+            df = df.drop(columns=['s_fHeaderBytes', 's_bHeaderBytes', 's_lenSd', 's_fLenSd', 's_fIATSd',
+                                              's_bLenSd', 's_bIATSd', 's_flowIATSd', 's_idleSd', 's_activeSd','appname'])
+            alist = df.columns
+        # 数据处理
+
+        # standard
+        pd_std = pd.read_csv('./log/std.csv')
+        pd_std.columns = ['key', 'value']
+        dict_std = dict(zip(pd_std['key'], pd_std['value']))
+        pd_mean = pd.read_csv('./log/mean.csv')
+        pd_mean.columns = ['key', 'value']
+        dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
+        newdataframe = self._process_stand(alist, df, dict_mean, dict_std)
+
+        newdataframe = newdataframe.replace([np.inf, -np.inf], np.nan).dropna().copy()
+        test_dataframe, res_test, truelabel_test = self.df_to_dataset(newdataframe, shuffle=False)
+
+        # loss, accuracy, precision, recall, auc = test_model.evaluate(test_dataframe)
+        # print(accuracy, precision, recall, auc)
+        prediction = test_model.predict(test_dataframe, verbose=1)
+        predict_label = np.argmax(prediction, axis=1)
+
+        # similar_indices, dissimilar_indices = self._compare_arrays(truelabel_test,predict_label)
+        #
+        # similar_dataframe = self._extract_values(newdataframe,similar_indices)
+        # similar_dataframe.to_csv('./csv_data/wangzherongyao_similar.csv')
+        # dissimilar_dataframe = self._extract_values(newdataframe,dissimilar_indices)
+        # dissimilar_dataframe.to_csv('./csv_data/wangzherongyao_dissimilar.csv')
+
+        # 绘制混淆矩阵
+        # plot_conf(predict_label, truelabel_test, res_test)
+        # 绘制ROC曲线
+        # y_label = keras.utils.to_categorical(truelabel_test, self.opt.nclass)
+        # multi_roc(y_label, prediction, res_test)
+        # 分析报告
+        report = classification_report(truelabel_test, predict_label, target_names=res_test)
+        print("classification_report:", classification_report(truelabel_test, predict_label, target_names=res_test))
+
+        with open("report.txt", "w") as f:
+            f.write(report)
+        # 手动计算准确率
+        count = 0
+        for i in range(0, len(truelabel_test)):
+            if truelabel_test[i] == predict_label[i]:
+                count += 1
+        print(count)
+        print(len(truelabel_test))
+        print(count / len(truelabel_test))
+        # 调用accuracy_score计算准确率
+        acc = accuracy_score(truelabel_test, predict_label)
+        print(acc)
+
+
     def test_new_all(self, model_path, tableName, split_size=0):
         """
           全部类预测准确率
@@ -273,6 +368,25 @@ class autotask(BaseClassification):
         acc = accuracy_score(truelabel_test, predict_label)
         print(acc)
 
+    def _compare_arrays(self,arr1, arr2):
+
+        similar_indices = []
+        dissimilar_indices = []
+
+        for i in range(len(arr1)):
+            if arr1[i] == arr2[i]:
+                similar_indices.append(i)
+            else:
+                dissimilar_indices.append(i)
+
+        return similar_indices, dissimilar_indices
+
+    def _extract_values(self,big_dataframe, indices):
+
+        # 提取相似的元素
+        data = big_dataframe.iloc[indices]
+
+        return data
     def df_to_dataset(self, dataframe, shuffle=True):
         """
         Since the data has been normalized in the edge router, there is no need to do normalization.
@@ -313,8 +427,7 @@ class autotask(BaseClassification):
         ds = ds.prefetch(self.opt.batch_size)
         return ds, res, newlabels
 
-    def _process_stand(self,
-                       featurelist,dataframe,data_mean,data_std
+    def _process_stand(self,featurelist,dataframe,data_mean,data_std
                        ) -> DataFrame:
 
         for _ in featurelist[:-1]:
@@ -596,13 +709,15 @@ class autotask(BaseClassification):
         model.save(self.opt.model_file)
         prediction = model.predict(test_ds, verbose=1)
         predict_label = np.argmax(prediction, axis=1)
-        # plot_conf(predict_label, truelabels_te, reskey)
-        # print(classification_report(y_test.argmax(-1), y_pred.argmax(-1)))
+        plot_conf(predict_label, truelabels_te, reskey)
+        report = classification_report(truelabels_te, predict_label, target_names=res_te)
+        print("classification_report:",report)
         return auc
 
     def _explain_model(self,model_path):
 
-        x = pd.read_csv('./csv_data/KingofGlorymisidentifiedasPeaceElite___20230616161057.csv')
+        x = pd.read_csv('./csv_data/wangzherongyao_dissimilar.csv')
+        x = x.drop(x.columns[0], axis=1)
 
         alist = []
         if os.path.exists('./log/features_%s' % (self.opt.project_name)):
@@ -612,16 +727,16 @@ class autotask(BaseClassification):
                 alist.append(line)
         else:
             raise Exception('dont exist folder!')
-
-        pd_std = pd.read_csv('./log/std.csv')
-        pd_std.columns = ['key', 'value']
-        dict_std = dict(zip(pd_std['key'], pd_std['value']))
-        pd_mean = pd.read_csv('./log/mean.csv')
-        pd_mean.columns = ['key', 'value']
-        dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
-        x.columns = alist[:-1]
-        x = self._process_stand(alist[:-1], x, dict_mean, dict_std)
-        mean_ = np.array(pd_mean['value'])
+        x = x[alist[:-1]]
+        # pd_std = pd.read_csv('./log/std.csv')
+        # pd_std.columns = ['key', 'value']
+        # dict_std = dict(zip(pd_std['key'], pd_std['value']))
+        # pd_mean = pd.read_csv('./log/mean.csv')
+        # pd_mean.columns = ['key', 'value']
+        # dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
+        # x.columns = alist[:-1]
+        # x = self._process_stand(alist[:-1], x, dict_mean, dict_std)
+        # mean_ = np.array(pd_mean['value'])
         dataframe = x.copy()
         # labels = dataframe.pop('appname')
         # dataframe.drop(dataframe.columns[[0]], axis=1, inplace=True)
@@ -641,7 +756,7 @@ class autotask(BaseClassification):
         test_model = load_model(model_path)
         explainer = shap.GradientExplainer(test_model, x_train)
 
-        shap_values = explainer.shap_values(x_train[:3],nsamples=3)
+        shap_values = explainer.shap_values(x_train[:500],nsamples=500)
         sample1 = DataFrame()
         sample1['values'] = list(shap_values[0][0].reshape(49))
         sample1['featureName'] = alist[:-1]
@@ -666,7 +781,8 @@ class autotask(BaseClassification):
                 auc = self._obtain_data_train_test()
             else:
                 # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv'%(self.opt.nclass))
-                self._explain_model(self.opt.model_file)
+                self.test_router(self.opt.model_file, 'ZTE_test1')
+                # self._explain_model(self.opt.model_file)
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5', '5APP_flowfeature_update_int')
                 # self.test_new_all('./savedmodels/model_0504_10_49.h5','AP_flowfeature_int_withbackground')
                 # self.test_all(self.opt.model_file, './csv_data/dataframe%d.csv' % (self.opt.nclass))
