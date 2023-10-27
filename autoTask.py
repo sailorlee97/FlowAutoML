@@ -52,7 +52,7 @@ class autotask(BaseClassification):
 
         super(autotask, self).__init__(opt)
         # self.opt = opt
-        self.mysqldata = ConnectMysql()
+        self.mysqldata = ConnectMysql(opt)
 
     def test_single(self, model_path, csv_path, name, label_number, isall=False):
         """
