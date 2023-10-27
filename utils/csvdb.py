@@ -15,12 +15,12 @@ from sklearn.preprocessing import LabelEncoder
 class ConnectMysql():
 
 
-    def __init__(self):
+    def __init__(self,opt):
         self.conn = pymysql.connect(
-            user='runtrend',
-            password='4rfv*UHB',
+            user=opt.username,
+            password=opt.password,
             host='sh-cynosdbmysql-grp-5dmxbh9a.sql.tencentcdb.com',
-            database='flowfeature',
+            database=opt.databaseName,
             port=26618,
             charset='utf8mb4',
         )
