@@ -102,6 +102,27 @@ class ConnectMysql():
 
         return process
 
+    def get_router_test(self,featurebase,app):
+        sql = 'select * from {} WHERE appname in {}'.format(featurebase,app)
+        df = pd.read_sql(sql, con=self.conn)
+        print('Read from sqlserver background successfully!')
+        process = df.drop(
+            ['index', 'appversion', 'appplatform', 'date', 'chargeperson', 'apptype'],
+            axis=1, inplace=False)
+
+        return process
+
+    def get_router_background(self,featurebase):
+
+        sql = "select * from {} WHERE pcaptype = 'background' ".format(featurebase)
+        df = pd.read_sql(sql, con=self.conn)
+        print('Read from sqlserver background successfully!')
+        process = df.drop(
+            ['index','appversion','appplatform','date','chargeperson','apptype'  ],
+             axis=1,inplace=False)
+
+        return process
+
 # unit test
 if __name__ == '__main__':
     getdata = ConnectMysql()
