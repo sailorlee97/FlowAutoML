@@ -147,10 +147,10 @@ class autotask(BaseClassification):
         # 数据处理
         dataframe = df.replace([np.inf, -np.inf], np.nan).dropna().copy()
         # standard
-        pd_std = pd.read_csv('./log/std.csv')
+        pd_std = pd.read_csv('./log/std_%s.csv'%(self.opt.project_name))
         pd_std.columns = ['key', 'value']
         dict_std = dict(zip(pd_std['key'], pd_std['value']))
-        pd_mean = pd.read_csv('./log/mean.csv')
+        pd_mean = pd.read_csv('./log/mean_%s.csv'%(self.opt.project_name))
         pd_mean.columns = ['key', 'value']
         dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
         dataframe1 = self._process_stand(alist, dataframe, dict_mean, dict_std)
@@ -237,10 +237,10 @@ class autotask(BaseClassification):
         # 数据处理
 
         # standard
-        pd_std = pd.read_csv('./log/std.csv')
+        pd_std = pd.read_csv('./log/std_%s.csv'%(self.opt.project_name))
         pd_std.columns = ['key', 'value']
         dict_std = dict(zip(pd_std['key'], pd_std['value']))
-        pd_mean = pd.read_csv('./log/mean.csv')
+        pd_mean = pd.read_csv('./log/mean_%s.csv'%(self.opt.project_name))
         pd_mean.columns = ['key', 'value']
         dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
         newdataframe = self._process_stand(alist, df, dict_mean, dict_std)
@@ -326,10 +326,10 @@ class autotask(BaseClassification):
         dataframe = df.replace([np.inf, -np.inf], np.nan).dropna().copy()
 
         # standard
-        pd_std = pd.read_csv('./log/std.csv')
+        pd_std = pd.read_csv('./log/std_%s.csv'%(self.opt.project_name))
         pd_std.columns = ['key','value']
         dict_std = dict(zip(pd_std['key'],pd_std['value']))
-        pd_mean = pd.read_csv('./log/mean.csv')
+        pd_mean = pd.read_csv('./log/mean_%s.csv'%(self.opt.project_name))
         pd_mean.columns = ['key','value']
         dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
         dataframe1 = self._process_stand(alist,dataframe,dict_mean,dict_std)
@@ -645,12 +645,12 @@ class autotask(BaseClassification):
             # f.close()
             time_sf = 0
         # 特征增强
-        if os.path.exists('./log/std.csv') and os.path.exists('./log/mean.csv'):
+        if os.path.exists('./log/std_%s.csv'%(self.opt.project_name)) and os.path.exists('./log/mean_%s.csv'%(self.opt.project_name)):
 
-            pd_std = pd.read_csv('./log/std.csv')
+            pd_std = pd.read_csv('./log/std_%s.csv'%(self.opt.project_name))
             pd_std.columns = ['key', 'value']
             dict_std = dict(zip(pd_std['key'], pd_std['value']))
-            pd_mean = pd.read_csv('./log/mean.csv')
+            pd_mean = pd.read_csv('./log/mean_%s.csv'%(self.opt.project_name))
             pd_mean.columns = ['key', 'value']
             dict_mean = dict(zip(pd_mean['key'], pd_mean['value']))
             dataframe1 = self._process_stand(featurelist, dataframe, dict_mean, dict_std)
@@ -659,10 +659,10 @@ class autotask(BaseClassification):
             dataframe_nolabel = dataframe1.drop(columns=['appname'])
             data_std = dataframe_nolabel.std()
             pd_data_std = pd.DataFrame(data_std)
-            pd_data_std.to_csv('./log/std.csv')
+            pd_data_std.to_csv('./log/std_%s.csv'%(self.opt.project_name))
             data_mean = dataframe_nolabel.mean()
             pd_data_mean = pd.DataFrame(data_mean)
-            pd_data_mean.to_csv('./log/mean.csv')
+            pd_data_mean.to_csv('./log/mean_%s.csv'%(self.opt.project_name))
 
             for _ in featurelist[:-1]:
                 if data_std[_] == 0:
@@ -689,8 +689,8 @@ class autotask(BaseClassification):
         cnnmodel = autonetworks(self.opt.nclass, self.opt.number_features)
         model = cnnmodel.buildmodels()
 
-        reduce_lr = ReduceLROnPlateau(monitor='loss',factor=0.2,patience=5,min_lr=0.0001)
-        earlystop_callback = EarlyStopping(monitor='accuracy', min_delta=0.0001,patience=5)
+        reduce_lr = ReduceLROnPlateau(monitor='loss',factor=0.2,patience=5,min_lr=self.opt.lr)
+        earlystop_callback = EarlyStopping(monitor='accuracy', min_delta=self.opt.lr,patience=5)
 
         time_train_s = time.time()
 
