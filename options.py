@@ -20,9 +20,9 @@ class Options():
         self.parser.add_argument('--isInitialization', default='yes',
                                  help='yes - model train;no - we will load model trained.')
         self.parser.add_argument('--label', default='appname', help='data class labels.')
-        self.parser.add_argument('--epochs', default=100, help='number of epochs')
-        self.parser.add_argument('--nclass', default=8, help='number class labels and background.')
-        self.parser.add_argument('--batch_size', default=16, help='batch_size.')
+        self.parser.add_argument('--epochs', default=100,type=int, help='number of epochs')
+        self.parser.add_argument('--nclass', default=8,type=int, help='number class labels and background.')
+        self.parser.add_argument('--batch_size', default=16,type=int, help='batch_size.')
         self.parser.add_argument('--lr', default=0.001, help='learning rate.',type=int)
         self.parser.add_argument('--embedd_data_type', default='FLOAT', help='FLOAT, FIXED32, FIXED16, and FIXED8.')
         self.parser.add_argument('--enable_all_features', default='no',
@@ -30,14 +30,14 @@ class Options():
 
         # Model curing parameter
         self.parser.add_argument('--output_folder', default='outputs/', help='Path of output.')
-        self.parser.add_argument('--number_features', default=49, help='number_features name.')
+        self.parser.add_argument('--number_features', default=49, type=int, help='number_features name.')
         self.parser.add_argument('--project_name', default='model_1027_8_49', help='project name.')
         self.parser.add_argument('--model_file', default='savedmodels/model_1027_8_49.h5', help='Path of model.')
         self.parser.add_argument('--apps',
                                  default=['原神','王者荣耀','和平精英','香肠派对','崩坏：星穹铁','英雄联盟手游','蛋仔派对'],
                                  help='Select the application of the classification. The order apps here is the order of the labels.')
         # database
-        self.parser.add_argument('--port', default=26618, help='connect server port.')
+        self.parser.add_argument('--port', default=26618,type=int, help='connect server port.')
         self.parser.add_argument('--appsql',
                                  default=('原神','王者荣耀','和平精英','香肠派对','崩坏：星穹铁','英雄联盟手游','蛋仔派对'),
                                  help='Applications selected from the database.')
