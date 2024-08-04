@@ -23,3 +23,7 @@ If you find this useful in your research, please consider citing:
   keywords={Training;Cloud computing;Privacy;Computational modeling;Collaboration;Telecommunication traffic;Stability analysis;Feature Engineering;Feature Scaling;Traffic Classification;Deep Learning;Zero-touch network},
   doi={10.1109/TrustCom60117.2023.00265}}
 ```
+
+## 🚀 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=AIDC-AI/Parrot&type=Date)](https://star-history.com/#AIDC-AI/Parrot&Date)
