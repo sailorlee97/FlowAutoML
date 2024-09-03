@@ -12,6 +12,9 @@
 The AI-based network traffic classification technology has played a vital role in Zero-touch network and Service Management (ZSM). Network Traffic Features are the critical input for AI-based network traffic classification. However, unlike images and natural language traffic, features have high dispersion and weak stability. On the one hand, part of the key numerical flow features have a wide range of values. By scaling the features, the model can be better trained, which allows the classifier to make more accurate predictions. On the other hand, edge networks cannot scale features as well as the training set in the cloud. This situation affects the model’s performance on edge devices. This paper proposes a novel processing method of flow features for the AI-based network traffic classification model using cloud-edge collaboration. The method leverages the strong computational power of cloud computing to scale the flow features and transmit parameters derived from feature scaling to edge networks. The edge network processes the real-time flow through parameters, significantly enhancing the devices’ accuracy. To validate its effectiveness, we conducted four experiments, comparing models trained with and without feature scaling. The experimental results demonstrate that the model trained with feature scaling outperforms the model trained without scaling.
 
 ## 🦜Model
+<div align="center">
+  <img src="./images/algworkflow.png" width="800px" />
+</div>
 
 ## 📍How to use it?
 
