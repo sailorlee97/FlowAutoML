@@ -50,3 +50,6 @@ We reused the code from this repository：[EmbedIA](https://github.com/Embed-ML/
 ## 🚀 Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=AIDC-AI/Parrot&type=Date)](https://star-history.com/#AIDC-AI/Parrot&Date)
+
+## 🤗Contact
+If there are any questions, please feel free to propose new features by opening an issue or contacting the author: 2022040506@njupt.edu.cn
