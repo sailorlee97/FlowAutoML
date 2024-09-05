@@ -27,8 +27,6 @@ When you finish training, you can change the parameter `--isInitialization` to `
 
 ## 🌟Datasets
 [njupt2023](https://github.com/NJUPTSecurityAI/total-papers-summary/blob/main/njupt2023.csv),
-[MIRAGE-2019](https://traffic.comics.unina.it/mirage/mirage-2019.html),
-[CIC-IDS](https://www.unb.ca/cic/datasets/vpn.html)
 
 ## 👨‍🏫 Acknowledgement
 Citation
