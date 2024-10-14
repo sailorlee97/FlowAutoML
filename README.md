@@ -29,7 +29,7 @@ When you finish training, you can change the parameter `--isInitialization` to `
 [njupt2023](https://github.com/NJUPTSecurityAI/total-papers-summary/blob/main/njupt2023.csv),
 
 ## 👨‍🏫 Acknowledgement
-Citation
+TrustCom
 If you find this useful in your research, please consider citing:
 ```
 @INPROCEEDINGS{10538990,
